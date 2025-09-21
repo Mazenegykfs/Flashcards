@@ -63,7 +63,7 @@
             opacity: 0.9;
         }
         
-        .file-selector-section {
+        .file-selector-section, .level-selector-section {
             background: white;
             padding: 25px;
             border-radius: 15px;
@@ -91,7 +91,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .mode-btn {
+        .mode-btn, .level-btn {
             flex: 1;
             padding: 12px 20px;
             border-radius: 50px;
@@ -213,12 +213,18 @@
             align-items: center;
             width: 100%;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .quiz-score, .quiz-progress { font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
         .quiz-question { font-size: 1.3rem; margin-bottom: 20px; font-weight: 500; }
         
+        #quizQuestionLevel1 { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        #quizQuestionIcon { font-size: 4rem; }
+        #quizQuestionWord { font-size: 2.5rem; font-weight: bold; }
+
         .quiz-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -330,6 +336,13 @@
                             </div>
                         </div>
                         
+                        <!-- Quiz Level Selector -->
+                        <div id="levelSelectView" class="level-selector-section hidden">
+                             <h2>Select Quiz Level</h2>
+                             <button id="level1Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
+                             <button id="level2Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
+                        </div>
+
                         <!-- Quiz View -->
                         <div id="quizView" class="quiz-view hidden">
                             <div class="quiz-header">
@@ -337,7 +350,13 @@
                                 <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
                                 <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
                             </div>
-                            <div class="quiz-question" id="quizQuestion"></div>
+                            <div class="quiz-question" id="quizQuestion">
+                                 <span id="quizQuestionText"></span>
+                                 <div id="quizQuestionLevel1" class="hidden">
+                                    <div id="quizQuestionIcon"></div>
+                                    <div id="quizQuestionWord"></div>
+                                 </div>
+                            </div>
                             <div class="quiz-options" id="quizOptions"></div>
                         </div>
                     </div>
@@ -363,6 +382,9 @@
         const loadCardsBtn = document.getElementById('loadCardsBtn');
         const appContainer = document.getElementById('appContainer');
         const memorizeView = document.getElementById('memorizeView');
+        const levelSelectView = document.getElementById('levelSelectView');
+        const level1Btn = document.getElementById('level1Btn');
+        const level2Btn = document.getElementById('level2Btn');
         const quizView = document.getElementById('quizView');
         const card = document.getElementById('memorizeView');
         const wordFront = document.getElementById('wordFront');
@@ -382,12 +404,17 @@
         const quizScore = document.getElementById('quizScore');
         const restartQuizBtn = document.getElementById('restartQuizBtn');
         const quizQuestion = document.getElementById('quizQuestion');
+        const quizQuestionText = document.getElementById('quizQuestionText');
+        const quizQuestionLevel1 = document.getElementById('quizQuestionLevel1');
+        const quizQuestionIcon = document.getElementById('quizQuestionIcon');
+        const quizQuestionWord = document.getElementById('quizQuestionWord');
         const quizOptions = document.getElementById('quizOptions');
 
         // --- App State ---
         let flashcards = [];
         let currentCardIndex = 0;
         let currentMode = 'memorize';
+        let currentQuizLevel = 1;
         let quizQuestions = [];
         let currentQuizIndex = 0;
         let score = 0;
@@ -405,6 +432,8 @@
         });
         memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
         quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        level1Btn.addEventListener('click', () => { currentQuizLevel = 1; startQuiz(); });
+        level2Btn.addEventListener('click', () => { currentQuizLevel = 2; startQuiz(); });
         restartQuizBtn.addEventListener('click', startQuiz);
         
         // --- Functions ---
@@ -417,9 +446,7 @@
                 
                 const excelFiles = files.filter(file => file.name.endsWith('.xlsx'));
                 
-                if (excelFiles.length === 0) {
-                     throw new Error('No .xlsx files found in the GitHub repository.');
-                }
+                if (excelFiles.length === 0) throw new Error('No .xlsx files found in the GitHub repository.');
 
                 fileSelect.innerHTML = excelFiles.map(file => `<option value="${file.name}">${file.name}</option>`).join('');
                 
@@ -436,32 +463,32 @@
         function loadSelectedFile() {
             const selectedFile = fileSelect.value;
             if (!selectedFile) return;
-            
             const fileUrl = `https://raw.githubusercontent.com/Mazenegykfs/Flashcards/main/${selectedFile}`;
             loadDataFromUrl(fileUrl);
         }
 
         function switchMode(mode) {
             if (flashcards.length === 0) {
-                showNotification("Please wait for cards to load first.", true);
+                showNotification("Please load a card set first.", true);
                 return;
             }
             currentMode = mode;
             memorizeModeBtn.classList.toggle('active', mode === 'memorize');
             quizModeBtn.classList.toggle('active', mode === 'quiz');
 
+            memorizeView.classList.add('hidden');
+            quizView.classList.add('hidden');
+            levelSelectView.classList.add('hidden');
+            memorizeNav.classList.add('hidden');
+            wordList.classList.add('hidden');
+
             if (mode === 'memorize') {
-                quizView.classList.add('hidden');
                 memorizeView.classList.remove('hidden');
                 memorizeNav.classList.remove('hidden');
                 wordList.classList.remove('hidden');
                 displayCurrentCard();
-            } else {
-                memorizeView.classList.add('hidden');
-                memorizeNav.classList.add('hidden');
-                wordList.classList.add('hidden');
-                quizView.classList.remove('hidden');
-                startQuiz();
+            } else { // 'quiz'
+                levelSelectView.classList.remove('hidden');
             }
         }
 
@@ -474,7 +501,7 @@
                 const data = await response.arrayBuffer();
                 processExcelData(data);
                 appContainer.classList.remove('hidden');
-                fileSelect.disabled = true; // Disable selection while studying
+                switchMode('memorize'); // Default to memorize mode after loading
             } catch (error) {
                 console.error('Error fetching/processing Excel file:', error);
                 showNotification(`Failed to load ${fileSelect.value}.`, true);
@@ -501,9 +528,9 @@
                 flashcards = jsonData.slice(1).map(row => ({
                     word: row[wordIndex], icon: row[iconIndex], 
                     description: row[descIndex], arabicMeaning: row[arabicIndex]
-                })).filter(card => card.word);
+                })).filter(card => card.word && card.arabicMeaning);
 
-                if (flashcards.length < 4) throw new Error("At least 4 words are needed for the quiz mode.");
+                if (flashcards.length < 4) throw new Error("At least 4 words with Arabic meanings are needed for the quiz mode.");
 
                 showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
                 
@@ -570,6 +597,9 @@
         
         // --- Quiz Mode Functions ---
         function startQuiz() {
+            levelSelectView.classList.add('hidden');
+            quizView.classList.remove('hidden');
+
             score = 0;
             currentQuizIndex = 0;
             const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
@@ -580,22 +610,11 @@
         function displayQuizQuestion() {
             if (currentQuizIndex >= quizQuestions.length) {
                 const percentage = score / quizQuestions.length * 100;
-                let stars = '';
-                let icon = '';
-
-                if (percentage >= 90) {
-                    stars = '⭐⭐⭐';
-                    icon = '🏆'; // Golden cup for excellent
-                } else if (percentage >= 70) {
-                    stars = '⭐⭐';
-                    icon = '🥇'; // Gold medal for great
-                } else if (percentage >= 50) {
-                    stars = '⭐';
-                    icon = '👍'; // Thumbs up for good
-                } else {
-                    stars = 'Try Again!';
-                    icon = '😔'; // Sad face for needs improvement
-                }
+                let stars = ''; let icon = '';
+                if (percentage >= 90) { stars = '⭐⭐⭐'; icon = '🏆'; } 
+                else if (percentage >= 70) { stars = '⭐⭐'; icon = '🥇'; } 
+                else if (percentage >= 50) { stars = '⭐'; icon = '👍'; } 
+                else { stars = 'Try Again!'; icon = '😔'; }
 
                 quizQuestion.innerHTML = `<div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2>`;
                 quizOptions.innerHTML = `<p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p>
@@ -608,15 +627,32 @@
             quizProgress.textContent = `Question: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
             quizScore.innerHTML = `🏆 Score: ${score} / ${quizQuestions.length}`;
             const questionData = quizQuestions[currentQuizIndex];
-            quizQuestion.textContent = questionData.description;
             
-            const correctAnswer = questionData.word;
-            let options = new Set([correctAnswer]);
-            const distractors = flashcards.filter(f => f.word !== correctAnswer);
+            quizQuestionText.classList.toggle('hidden', currentQuizLevel === 1);
+            quizQuestionLevel1.classList.toggle('hidden', currentQuizLevel === 2);
             
-            while (options.size < 4 && distractors.length > 0) {
-                 const randomIndex = Math.floor(Math.random() * distractors.length);
-                 options.add(distractors.splice(randomIndex, 1)[0].word);
+            let correctAnswer;
+            let options = new Set();
+            
+            if (currentQuizLevel === 1) {
+                quizQuestionIcon.textContent = questionData.icon || '📝';
+                quizQuestionWord.textContent = questionData.word;
+                correctAnswer = questionData.arabicMeaning;
+                options.add(correctAnswer);
+                const distractors = flashcards.filter(f => f.arabicMeaning !== correctAnswer);
+                while (options.size < 4 && distractors.length > 0) {
+                     const randomIndex = Math.floor(Math.random() * distractors.length);
+                     options.add(distractors.splice(randomIndex, 1)[0].arabicMeaning);
+                }
+            } else { // Level 2
+                quizQuestionText.textContent = questionData.description;
+                correctAnswer = questionData.word;
+                options.add(correctAnswer);
+                const distractors = flashcards.filter(f => f.word !== correctAnswer);
+                while (options.size < 4 && distractors.length > 0) {
+                     const randomIndex = Math.floor(Math.random() * distractors.length);
+                     options.add(distractors.splice(randomIndex, 1)[0].word);
+                }
             }
             
             const shuffledOptions = Array.from(options).sort(() => 0.5 - Math.random());
@@ -626,6 +662,7 @@
                 const button = document.createElement('button');
                 button.className = 'option-btn';
                 button.textContent = option;
+                if(currentQuizLevel === 1) button.style.direction = 'rtl';
                 button.addEventListener('click', () => checkAnswer(option, correctAnswer));
                 quizOptions.appendChild(button);
             });
