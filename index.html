@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive English Flash Cards from Excel</title>
+    <title>Interactive English Flash Cards - Memorize & Quiz</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -17,6 +17,7 @@
             --bg-color: #e0f7fa; /* Light Blue Background */
             --green-btn: #4CAF50; /* Green Button */
             --red-btn: #f44336;   /* Red Button */
+            --header-bg: #00796b;
         }
 
         * {
@@ -44,8 +45,8 @@
 
         header {
             text-align: center;
-            margin-bottom: 30px;
-            background: #00796b;
+            margin-bottom: 20px;
+            background: var(--header-bg);
             padding: 20px;
             border-radius: 15px;
             color: white;
@@ -61,6 +62,57 @@
             font-size: 1.2rem;
             opacity: 0.9;
         }
+        
+        .file-selector-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        #fileSelect {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin-bottom: 15px;
+        }
+        
+        .mode-selector {
+            background: white;
+            padding: 10px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: none;
+            background-color: transparent;
+            color: var(--header-bg);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .mode-btn.active {
+            background-color: var(--header-bg);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 121, 107, 0.3);
+        }
 
         .flashcard-section {
             background: white;
@@ -69,12 +121,6 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .flashcard-section h2 {
-            margin-bottom: 20px;
-            text-align: center;
-            color: #00796b;
-        }
-
         .btn {
             color: white;
             border: none;
@@ -83,7 +129,10 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             margin-top: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             font-size: 1rem;
@@ -150,6 +199,52 @@
             transform: rotateY(180deg);
             overflow-y: auto;
         }
+        
+        .quiz-view {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .quiz-score, .quiz-progress { font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        
+        .quiz-question { font-size: 1.3rem; margin-bottom: 20px; font-weight: 500; }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .option-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .option-btn.correct { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .option-btn.incorrect { background-color: var(--red-btn) !important; color: white !important; border-color: var(--red-btn) !important; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
 
         .word-container {
             display: flex;
@@ -164,125 +259,34 @@
             margin-bottom: 15px;
         }
         
-        .description {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-       
-        .arabic-meaning {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--primary);
-            direction: rtl;
-            font-family: 'Tahoma', sans-serif;
-        }
-
-        .card-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
+        .description { font-size: 1.1rem; margin-bottom: 20px; }
+        .arabic-meaning { font-size: 1.8rem; font-weight: bold; color: var(--primary); direction: rtl; font-family: 'Tahoma', sans-serif; }
+        .card-icon { font-size: 4rem; margin-bottom: 20px; }
         
         .pronounce-btn {
-            background: none;
-            border: none;
-            font-size: 2.5rem;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.2s;
-            padding: 0;
-            line-height: 1;
+            background: none; border: none; font-size: 2.5rem; color: white; cursor: pointer;
+            transition: transform 0.2s; padding: 0; line-height: 1;
         }
+        .pronounce-btn:hover { transform: scale(1.1); }
 
-        .pronounce-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .progress {
-            font-weight: bold;
-        }
-
-        .word-list {
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .word-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-radius: 5px;
-        }
+        .navigation { display: flex; justify-content: space-between; align-items: center; }
+        .progress { font-weight: bold; }
+        .word-list { margin-top: 20px; max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; }
+        .word-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: all 0.2s ease; border-radius: 5px; }
         .word-item:last-child { border-bottom: none; }
-
         .word-item:hover { background-color: rgba(76, 201, 240, 0.1); }
+        .word-item.active { background-color: var(--primary); color: white; font-weight: bold; }
 
-        .word-item.active {
-            background-color: var(--primary);
-            color: white;
-            font-weight: bold;
-        }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-        
-        .initial-loading {
-             display: flex;
-             flex-direction: column;
-             align-items: center;
-             justify-content: center;
-             height: 400px;
-        }
-
-
-        .spinner {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            background: var(--success);
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transform: translateX(120%);
-            transition: transform 0.4s ease-in-out;
-            z-index: 1000;
-        }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: center; gap: 10px; }
         .notification.error { background: var(--red-btn); }
-
         .notification.show { transform: translateX(0); }
 
-        @media (max-width: 900px) {
-            .main-content { grid-template-columns: 1fr; }
-        }
+        .hidden { display: none !important; }
+
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -292,46 +296,75 @@
             <div class="subtitle">Developed by Dr. Mazen Badawy – Doctorate of English Teaching and Testing</div>
         </header>
 
-        <main class="main-content">
-             <div class="flashcard-section">
-                <div class="card-container" id="cardContainer">
-                    <div class="initial-loading" id="initialLoading">
-                        <div class="spinner"></div>
-                        <p>Loading cards from GitHub...</p>
-                    </div>
-                    <div class="card" id="card" style="display: none;">
-                        <div class="card-face card-front">
-                            <div class="card-icon" id="cardIcon">📚</div>
-                            <div class="word-container">
-                                <div class="word" id="wordFront"></div>
-                                <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+        <section class="file-selector-section">
+            <h2>Select a Word List</h2>
+            <div id="fileSelectorContainer">
+                <p>Loading file list from GitHub...</p>
+                <div class="spinner" style="width: 30px; height: 30px; border-width: 3px;"></div>
+            </div>
+            <select id="fileSelect" class="hidden"></select>
+            <button id="loadCardsBtn" class="btn green hidden">📚 Load Cards</button>
+        </section>
+
+        <div id="appContainer" class="hidden">
+            <div class="mode-selector">
+                <button class="mode-btn active" id="memorizeModeBtn">🧠 Memorize</button>
+                <button class="mode-btn" id="quizModeBtn">🏆 Quiz</button>
+            </div>
+
+            <main class="main-content">
+                 <div class="flashcard-section">
+                    <div class="card-container" id="cardContainer">
+                        <!-- Memorize View -->
+                        <div class="card" id="memorizeView">
+                            <div class="card-face card-front">
+                                <div class="card-icon" id="cardIcon">📚</div>
+                                <div class="word-container">
+                                    <div class="word" id="wordFront"></div>
+                                    <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+                                </div>
+                            </div>
+                            <div class="card-face card-back">
+                                <div class="description" id="description"></div>
+                                <div class="arabic-meaning" id="arabicMeaning"></div>
                             </div>
                         </div>
-                        <div class="card-face card-back">
-                            <div class="description" id="description"></div>
-                            <div class="arabic-meaning" id="arabicMeaning"></div>
+                        
+                        <!-- Quiz View -->
+                        <div id="quizView" class="quiz-view hidden">
+                            <div class="quiz-header">
+                                <div class="quiz-progress" id="quizProgress">Question: 0/0</div>
+                                <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
+                                <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
+                            </div>
+                            <div class="quiz-question" id="quizQuestion"></div>
+                            <div class="quiz-options" id="quizOptions"></div>
                         </div>
                     </div>
-                </div>
 
-                <div class="navigation">
-                    <button class="btn red" id="prevBtn">Previous</button>
-                    <div class="progress" id="progress">0 / 0</div>
-                    <button class="btn green" id="nextBtn">Next</button>
-                </div>
+                    <div class="navigation" id="memorizeNav">
+                        <button class="btn red" id="prevBtn">⬅️ Previous</button>
+                        <div class="progress" id="progress">0 / 0</div>
+                        <button class="btn green" id="nextBtn">Next ➡️</button>
+                    </div>
 
-                <div class="word-list" id="wordList"></div>
-            </div>
-        </main>
+                    <div class="word-list" id="wordList"></div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <div class="notification" id="notification">Notification</div>
 
     <script>
         // --- DOM Elements ---
-        const cardContainer = document.getElementById('cardContainer');
-        const initialLoading = document.getElementById('initialLoading');
-        const card = document.getElementById('card');
+        const fileSelectorContainer = document.getElementById('fileSelectorContainer');
+        const fileSelect = document.getElementById('fileSelect');
+        const loadCardsBtn = document.getElementById('loadCardsBtn');
+        const appContainer = document.getElementById('appContainer');
+        const memorizeView = document.getElementById('memorizeView');
+        const quizView = document.getElementById('quizView');
+        const card = document.getElementById('memorizeView');
         const wordFront = document.getElementById('wordFront');
         const description = document.getElementById('description');
         const arabicMeaning = document.getElementById('arabicMeaning');
@@ -342,39 +375,112 @@
         const wordList = document.getElementById('wordList');
         const notification = document.getElementById('notification');
         const pronounceBtn = document.getElementById('pronounceBtn');
+        const memorizeModeBtn = document.getElementById('memorizeModeBtn');
+        const quizModeBtn = document.getElementById('quizModeBtn');
+        const memorizeNav = document.getElementById('memorizeNav');
+        const quizProgress = document.getElementById('quizProgress');
+        const quizScore = document.getElementById('quizScore');
+        const restartQuizBtn = document.getElementById('restartQuizBtn');
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizOptions = document.getElementById('quizOptions');
 
         // --- App State ---
         let flashcards = [];
         let currentCardIndex = 0;
+        let currentMode = 'memorize';
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let score = 0;
+        const QUIZ_LENGTH = 20;
         
         // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', loadDataFromGitHub);
+        document.addEventListener('DOMContentLoaded', fetchFileListFromGitHub);
+        loadCardsBtn.addEventListener('click', loadSelectedFile);
         card.addEventListener('click', () => card.classList.toggle('flipped'));
         prevBtn.addEventListener('click', showPreviousCard);
         nextBtn.addEventListener('click', showNextCard);
         pronounceBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const wordToPronounce = wordFront.textContent;
-            if (wordToPronounce) {
-                pronounceWord(wordToPronounce);
-            }
+            if (wordFront.textContent) pronounceWord(wordFront.textContent);
         });
+        memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
+        quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        restartQuizBtn.addEventListener('click', startQuiz);
         
         // --- Functions ---
-        async function loadDataFromGitHub() {
-            // The URL to your raw Excel file on GitHub.
-            const url = 'https://raw.githubusercontent.com/Mazenegykfs/Flashcards/refs/heads/main/0000.xlsx';
+        async function fetchFileListFromGitHub() {
+            const repoUrl = 'https://api.github.com/repos/Mazenegykfs/Flashcards/contents/';
+            try {
+                const response = await fetch(repoUrl);
+                if (!response.ok) throw new Error('Could not fetch file list from GitHub.');
+                const files = await response.json();
+                
+                const excelFiles = files.filter(file => file.name.endsWith('.xlsx'));
+                
+                if (excelFiles.length === 0) {
+                     throw new Error('No .xlsx files found in the GitHub repository.');
+                }
 
+                fileSelect.innerHTML = excelFiles.map(file => `<option value="${file.name}">${file.name}</option>`).join('');
+                
+                fileSelectorContainer.classList.add('hidden');
+                fileSelect.classList.remove('hidden');
+                loadCardsBtn.classList.remove('hidden');
+
+            } catch(error) {
+                console.error('Error fetching file list:', error);
+                fileSelectorContainer.innerHTML = `<p style="color:var(--red-btn);">${error.message}</p>`;
+            }
+        }
+        
+        function loadSelectedFile() {
+            const selectedFile = fileSelect.value;
+            if (!selectedFile) return;
+            
+            const fileUrl = `https://raw.githubusercontent.com/Mazenegykfs/Flashcards/main/${selectedFile}`;
+            loadDataFromUrl(fileUrl);
+        }
+
+        function switchMode(mode) {
+            if (flashcards.length === 0) {
+                showNotification("Please wait for cards to load first.", true);
+                return;
+            }
+            currentMode = mode;
+            memorizeModeBtn.classList.toggle('active', mode === 'memorize');
+            quizModeBtn.classList.toggle('active', mode === 'quiz');
+
+            if (mode === 'memorize') {
+                quizView.classList.add('hidden');
+                memorizeView.classList.remove('hidden');
+                memorizeNav.classList.remove('hidden');
+                wordList.classList.remove('hidden');
+                displayCurrentCard();
+            } else {
+                memorizeView.classList.add('hidden');
+                memorizeNav.classList.add('hidden');
+                wordList.classList.add('hidden');
+                quizView.classList.remove('hidden');
+                startQuiz();
+            }
+        }
+
+        async function loadDataFromUrl(url) {
+            loadCardsBtn.disabled = true;
+            loadCardsBtn.textContent = 'Loading...';
             try {
                 const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Network response error: ${response.statusText}`);
                 const data = await response.arrayBuffer();
                 processExcelData(data);
+                appContainer.classList.remove('hidden');
+                fileSelect.disabled = true; // Disable selection while studying
             } catch (error) {
-                console.error('Error fetching or processing Excel file:', error);
-                initialLoading.innerHTML = `<p style="color:var(--red-btn);">Failed to load Excel file. Please check the URL and your internet connection.</p>`;
+                console.error('Error fetching/processing Excel file:', error);
+                showNotification(`Failed to load ${fileSelect.value}.`, true);
+            } finally {
+                loadCardsBtn.disabled = false;
+                loadCardsBtn.textContent = '📚 Load Cards';
             }
         }
 
@@ -384,43 +490,31 @@
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
                 const headers = jsonData[0].map(h => String(h).toLowerCase().trim());
                 const wordIndex = headers.indexOf('word');
                 const iconIndex = headers.indexOf('icon');
                 const descIndex = headers.indexOf('description');
                 const arabicIndex = headers.indexOf('arabic meaning');
                 
-                if (wordIndex === -1) {
-                     throw new Error("Column 'Word' not found in Excel file.");
-                }
+                if (wordIndex === -1) throw new Error("Column 'Word' not found.");
 
                 flashcards = jsonData.slice(1).map(row => ({
-                    word: row[wordIndex],
-                    icon: row[iconIndex],
-                    description: row[descIndex],
-                    arabicMeaning: row[arabicIndex]
+                    word: row[wordIndex], icon: row[iconIndex], 
+                    description: row[descIndex], arabicMeaning: row[arabicIndex]
                 })).filter(card => card.word);
 
-                if (flashcards.length === 0) {
-                    throw new Error("No data rows found in the Excel file.");
-                }
+                if (flashcards.length < 4) throw new Error("At least 4 words are needed for the quiz mode.");
 
-                showNotification(`Loaded ${flashcards.length} cards successfully!`);
+                showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
                 
-                // --- Start the app ---
-                initialLoading.style.display = 'none';
-                card.style.display = 'block';
                 currentCardIndex = 0;
                 displayCurrentCard();
                 updateWordList();
                 prevBtn.disabled = false;
                 nextBtn.disabled = false;
-
             } catch (error) {
                 console.error('Error parsing Excel data:', error);
-                showNotification(error.message || 'Error processing Excel file.', true, 5000);
-                initialLoading.innerHTML = `<p style="color:var(--red-btn);">${error.message}</p>`;
+                showNotification(error.message, true, 5000);
             }
         }
 
@@ -431,29 +525,20 @@
                 utterance.lang = 'en-US';
                 window.speechSynthesis.speak(utterance);
             } else {
-                showNotification('Text-to-speech is not supported in your browser.', true);
+                showNotification('Text-to-speech not supported.', true);
             }
         }
         
         function displayCurrentCard() {
             if (flashcards.length === 0) return;
-
             const cardData = flashcards[currentCardIndex];
-            
             wordFront.textContent = cardData.word || 'N/A';
             cardIcon.textContent = cardData.icon || '📝';
-            description.textContent = cardData.description || 'No description provided.';
+            description.textContent = cardData.description || 'No description.';
             arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
-
             progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
-
-            document.querySelectorAll('.word-item').forEach((item, index) => {
-                item.classList.toggle('active', index === currentCardIndex);
-            });
-
-            if(card.classList.contains('flipped')) {
-                card.classList.remove('flipped');
-            }
+            document.querySelectorAll('.word-item').forEach((item, index) => item.classList.toggle('active', index === currentCardIndex));
+            if(card.classList.contains('flipped')) card.classList.remove('flipped');
         }
 
         function showPreviousCard() {
@@ -470,32 +555,110 @@
 
         function updateWordList() {
             wordList.innerHTML = '';
-            flashcards.forEach((card, index) => {
+            flashcards.forEach((cardData, index) => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
-                item.textContent = card.word;
+                item.textContent = cardData.word;
                 item.addEventListener('click', () => {
                     currentCardIndex = index;
                     displayCurrentCard();
                 });
                 wordList.appendChild(item);
             });
-            if (wordList.firstChild) {
-                wordList.firstChild.classList.add('active');
+            if (wordList.firstChild) wordList.firstChild.classList.add('active');
+        }
+        
+        // --- Quiz Mode Functions ---
+        function startQuiz() {
+            score = 0;
+            currentQuizIndex = 0;
+            const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
+            quizQuestions = shuffled.slice(0, Math.min(flashcards.length, QUIZ_LENGTH));
+            displayQuizQuestion();
+        }
+
+        function displayQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                const percentage = score / quizQuestions.length * 100;
+                let stars = '';
+                let icon = '';
+
+                if (percentage >= 90) {
+                    stars = '⭐⭐⭐';
+                    icon = '🏆'; // Golden cup for excellent
+                } else if (percentage >= 70) {
+                    stars = '⭐⭐';
+                    icon = '🥇'; // Gold medal for great
+                } else if (percentage >= 50) {
+                    stars = '⭐';
+                    icon = '👍'; // Thumbs up for good
+                } else {
+                    stars = 'Try Again!';
+                    icon = '😔'; // Sad face for needs improvement
+                }
+
+                quizQuestion.innerHTML = `<div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2>`;
+                quizOptions.innerHTML = `<p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p>
+                                         <div style="font-size: 2.5rem;">${stars}</div>`;
+                quizScore.innerHTML = `🏆 Final Score: ${score}/${quizQuestions.length}`;
+                quizProgress.textContent = "Finished!";
+                return;
             }
+            
+            quizProgress.textContent = `Question: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
+            quizScore.innerHTML = `🏆 Score: ${score} / ${quizQuestions.length}`;
+            const questionData = quizQuestions[currentQuizIndex];
+            quizQuestion.textContent = questionData.description;
+            
+            const correctAnswer = questionData.word;
+            let options = new Set([correctAnswer]);
+            const distractors = flashcards.filter(f => f.word !== correctAnswer);
+            
+            while (options.size < 4 && distractors.length > 0) {
+                 const randomIndex = Math.floor(Math.random() * distractors.length);
+                 options.add(distractors.splice(randomIndex, 1)[0].word);
+            }
+            
+            const shuffledOptions = Array.from(options).sort(() => 0.5 - Math.random());
+            
+            quizOptions.innerHTML = '';
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option, correctAnswer));
+                quizOptions.appendChild(button);
+            });
+        }
+        
+        function checkAnswer(selectedOption, correctAnswer) {
+            const buttons = quizOptions.querySelectorAll('.option-btn');
+            buttons.forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) button.classList.add('correct');
+            });
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                showNotification("Correct!", false, 1500);
+            } else {
+                buttons.forEach(button => {
+                   if (button.textContent === selectedOption) button.classList.add('incorrect');
+                });
+                showNotification("Incorrect!", true, 1500);
+            }
+            
+            currentQuizIndex++;
+            setTimeout(displayQuizQuestion, 2000);
         }
 
         function showNotification(message, isError = false, duration = 3000) {
-            notification.textContent = message;
+            const icon = isError ? '❌' : '✅';
+            notification.innerHTML = `<span>${icon}</span> ${message}`;
             notification.classList.toggle('error', isError);
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), duration);
         }
-
-        // --- Initial State ---
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-
     </script>
 </body>
 </html>
