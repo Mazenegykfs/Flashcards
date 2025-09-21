@@ -362,19 +362,8 @@
         
         // --- Functions ---
         async function loadDataFromGitHub() {
-            // IMPORTANT: REPLACE THIS URL with the RAW link to your '0000.xlsx' file on GitHub.
-            // To get the raw link:
-            // 1. Go to your file on GitHub.
-            // 2. Click the "Raw" button.
-            // 3. Copy the URL from your browser's address bar.
-            // Example: const url = 'https://raw.githubusercontent.com/YourUsername/YourRepo/main/0000.xlsx';
-            const url = 'https://raw.githubusercontent.com/<YOUR-GITHUB-USERNAME>/<YOUR-REPOSITORY-NAME>/main/0000.xlsx';
-            
-            // FIX: Check if the URL is still the placeholder.
-            if (url.includes('<YOUR-GITHUB-USERNAME>')) {
-                initialLoading.innerHTML = `<p style="color:var(--red-btn);"><strong>Configuration Needed:</strong><br>Please edit the script in this HTML file and replace the placeholder GitHub URL with the correct raw link to your '0000.xlsx' file.</p>`;
-                return;
-            }
+            // The URL to your raw Excel file on GitHub.
+            const url = 'https://raw.githubusercontent.com/Mazenegykfs/Flashcards/refs/heads/main/0000.xlsx';
 
             try {
                 const response = await fetch(url);
