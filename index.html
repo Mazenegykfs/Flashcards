@@ -419,6 +419,14 @@
         let currentQuizIndex = 0;
         let score = 0;
         const QUIZ_LENGTH = 20;
+
+        const colorMap = {
+            'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
+            'orange': '#ffa500', 'purple': '#800080', 'pink': '#ffc0cb', 'black': '#000000',
+            'white': '#ffffff', 'gray': '#808080', 'grey': '#808080', 'brown': '#a52a2a',
+            'cyan': '#00ffff', 'magenta': '#ff00ff', 'lime': '#00ff00', 'maroon': '#800000',
+            'navy': '#000080', 'olive': '#808000', 'teal': '#008080', 'silver': '#c0c0c0', 'gold': '#ffd700'
+        };
         
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', fetchFileListFromGitHub);
@@ -559,8 +567,20 @@
         function displayCurrentCard() {
             if (flashcards.length === 0) return;
             const cardData = flashcards[currentCardIndex];
+            const wordLower = (cardData.word || '').toLowerCase();
+            
             wordFront.textContent = cardData.word || 'N/A';
             cardIcon.textContent = cardData.icon || '📝';
+            
+            // --- Color Logic ---
+            if (colorMap[wordLower]) {
+                cardIcon.style.color = colorMap[wordLower];
+                cardIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000, 0 0 5px #000' : 'none';
+            } else {
+                cardIcon.style.color = ''; // Reset to default
+                cardIcon.style.textShadow = 'none';
+            }
+
             description.textContent = cardData.description || 'No description.';
             arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
             progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
@@ -635,8 +655,19 @@
             let options = new Set();
             
             if (currentQuizLevel === 1) {
+                const wordLower = (questionData.word || '').toLowerCase();
                 quizQuestionIcon.textContent = questionData.icon || '📝';
                 quizQuestionWord.textContent = questionData.word;
+                
+                // --- Color Logic for Quiz Level 1 ---
+                if (colorMap[wordLower]) {
+                    quizQuestionIcon.style.color = colorMap[wordLower];
+                    quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
+                } else {
+                    quizQuestionIcon.style.color = ''; // Reset
+                    quizQuestionIcon.style.textShadow = 'none';
+                }
+
                 correctAnswer = questionData.arabicMeaning;
                 options.add(correctAnswer);
                 const distractors = flashcards.filter(f => f.arabicMeaning !== correctAnswer);
