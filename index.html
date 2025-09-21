@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive English Flashcards - Memorize & Quiz</title>
+    <title>Interactive English Flash Cards - Memorize & Quiz</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -298,7 +298,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Interactive English Flashcards</h1>
+            <h1>Interactive English Flash Cards</h1>
             <div class="subtitle">Developed by Dr. Mazen Badawy – Doctorate of English Teaching and Testing</div>
         </header>
 
@@ -586,7 +586,13 @@
             description.textContent = cardData.description || 'No description.';
             arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
             progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
-            document.querySelectorAll('.word-item').forEach((item, index) => item.classList.toggle('active', index === currentCardIndex));
+            
+            // Update active item by matching word, not index, to support the sorted list
+            const currentWord = cardData.word;
+            document.querySelectorAll('.word-item').forEach(item => {
+                item.classList.toggle('active', item.textContent === currentWord);
+            });
+
             if(card.classList.contains('flipped')) card.classList.remove('flipped');
         }
 
@@ -604,17 +610,24 @@
 
         function updateWordList() {
             wordList.innerHTML = '';
-            flashcards.forEach((cardData, index) => {
+            // Create a sorted copy for display purposes
+            const sortedFlashcards = [...flashcards].sort((a, b) => a.word.localeCompare(b.word));
+
+            sortedFlashcards.forEach((cardData) => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
                 item.textContent = cardData.word;
                 item.addEventListener('click', () => {
-                    currentCardIndex = index;
-                    displayCurrentCard();
+                    // Find the original index of the clicked word to keep navigation consistent
+                    const originalIndex = flashcards.findIndex(card => card.word === cardData.word);
+                    if (originalIndex !== -1) {
+                        currentCardIndex = originalIndex;
+                        displayCurrentCard();
+                    }
                 });
                 wordList.appendChild(item);
             });
-            if (wordList.firstChild) wordList.firstChild.classList.add('active');
+            // Initial active state update is handled by displayCurrentCard
         }
         
         // --- Quiz Mode Functions ---
