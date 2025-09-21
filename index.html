@@ -452,7 +452,9 @@
                 if (!response.ok) throw new Error('Could not fetch file list from GitHub.');
                 const files = await response.json();
                 
-                const excelFiles = files.filter(file => file.name.endsWith('.xlsx'));
+                const excelFiles = files
+                    .filter(file => file.name.endsWith('.xlsx'))
+                    .sort((a, b) => a.name.localeCompare(b.name)); // Sort files alphabetically
                 
                 if (excelFiles.length === 0) throw new Error('No .xlsx files found in the GitHub repository.');
 
