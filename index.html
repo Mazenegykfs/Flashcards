@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive English Flash Cards from Excel</title>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #f72585;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ec4b6;
+            --warning: #ff9f1c;
+            --bg-color: #e0f7fa; /* Light Blue Background */
+            --green-btn: #4CAF50; /* Green Button */
+            --red-btn: #f44336;   /* Red Button */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: #00796b;
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .flashcard-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flashcard-section h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00796b;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+        }
+        
+        .btn.green { background: var(--green-btn); }
+        .btn.red { background: var(--red-btn); }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #81d4fa, #4fc3f7);
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+            color: var(--dark);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+        }
+
+        .word-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+       
+        .arabic-meaning {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            direction: rtl;
+            font-family: 'Tahoma', sans-serif;
+        }
+
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .pronounce-btn {
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .pronounce-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress {
+            font-weight: bold;
+        }
+
+        .word-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .word-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 5px;
+        }
+        .word-item:last-child { border-bottom: none; }
+
+        .word-item:hover { background-color: rgba(76, 201, 240, 0.1); }
+
+        .word-item.active {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .initial-loading {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             justify-content: center;
+             height: 400px;
+        }
+
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: var(--success);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            transition: transform 0.4s ease-in-out;
+            z-index: 1000;
+        }
+        .notification.error { background: var(--red-btn); }
+
+        .notification.show { transform: translateX(0); }
+
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interactive English Flash Cards</h1>
+            <div class="subtitle">Developed by Dr. Mazen Badawy – Doctorate of English Teaching and Testing</div>
+        </header>
+
+        <main class="main-content">
+             <div class="flashcard-section">
+                <div class="card-container" id="cardContainer">
+                    <div class="initial-loading" id="initialLoading">
+                        <div class="spinner"></div>
+                        <p>Loading cards from GitHub...</p>
+                    </div>
+                    <div class="card" id="card" style="display: none;">
+                        <div class="card-face card-front">
+                            <div class="card-icon" id="cardIcon">📚</div>
+                            <div class="word-container">
+                                <div class="word" id="wordFront"></div>
+                                <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="description" id="description"></div>
+                            <div class="arabic-meaning" id="arabicMeaning"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navigation">
+                    <button class="btn red" id="prevBtn">Previous</button>
+                    <div class="progress" id="progress">0 / 0</div>
+                    <button class="btn green" id="nextBtn">Next</button>
+                </div>
+
+                <div class="word-list" id="wordList"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="notification" id="notification">Notification</div>
+
+    <script>
+        // --- DOM Elements ---
+        const cardContainer = document.getElementById('cardContainer');
+        const initialLoading = document.getElementById('initialLoading');
+        const card = document.getElementById('card');
+        const wordFront = document.getElementById('wordFront');
+        const description = document.getElementById('description');
+        const arabicMeaning = document.getElementById('arabicMeaning');
+        const cardIcon = document.getElementById('cardIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progress = document.getElementById('progress');
+        const wordList = document.getElementById('wordList');
+        const notification = document.getElementById('notification');
+        const pronounceBtn = document.getElementById('pronounceBtn');
+
+        // --- App State ---
+        let flashcards = [];
+        let currentCardIndex = 0;
+        
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', loadDataFromGitHub);
+        card.addEventListener('click', () => card.classList.toggle('flipped'));
+        prevBtn.addEventListener('click', showPreviousCard);
+        nextBtn.addEventListener('click', showNextCard);
+        pronounceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wordToPronounce = wordFront.textContent;
+            if (wordToPronounce) {
+                pronounceWord(wordToPronounce);
+            }
+        });
+        
+        // --- Functions ---
+        async function loadDataFromGitHub() {
+            // IMPORTANT: REPLACE THIS URL with the RAW link to your '0000.xlsx' file on GitHub.
+            // To get the raw link:
+            // 1. Go to your file on GitHub.
+            // 2. Click the "Raw" button.
+            // 3. Copy the URL from your browser's address bar.
+            // Example: const url = 'https://raw.githubusercontent.com/YourUsername/YourRepo/main/0000.xlsx';
+            const url = 'https://raw.githubusercontent.com/<YOUR-GITHUB-USERNAME>/<YOUR-REPOSITORY-NAME>/main/0000.xlsx';
+            
+            // FIX: Check if the URL is still the placeholder.
+            if (url.includes('<YOUR-GITHUB-USERNAME>')) {
+                initialLoading.innerHTML = `<p style="color:var(--red-btn);"><strong>Configuration Needed:</strong><br>Please edit the script in this HTML file and replace the placeholder GitHub URL with the correct raw link to your '0000.xlsx' file.</p>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.arrayBuffer();
+                processExcelData(data);
+            } catch (error) {
+                console.error('Error fetching or processing Excel file:', error);
+                initialLoading.innerHTML = `<p style="color:var(--red-btn);">Failed to load Excel file. Please check the URL and your internet connection.</p>`;
+            }
+        }
+
+        function processExcelData(data) {
+             try {
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const headers = jsonData[0].map(h => String(h).toLowerCase().trim());
+                const wordIndex = headers.indexOf('word');
+                const iconIndex = headers.indexOf('icon');
+                const descIndex = headers.indexOf('description');
+                const arabicIndex = headers.indexOf('arabic meaning');
+                
+                if (wordIndex === -1) {
+                     throw new Error("Column 'Word' not found in Excel file.");
+                }
+
+                flashcards = jsonData.slice(1).map(row => ({
+                    word: row[wordIndex],
+                    icon: row[iconIndex],
+                    description: row[descIndex],
+                    arabicMeaning: row[arabicIndex]
+                })).filter(card => card.word);
+
+                if (flashcards.length === 0) {
+                    throw new Error("No data rows found in the Excel file.");
+                }
+
+                showNotification(`Loaded ${flashcards.length} cards successfully!`);
+                
+                // --- Start the app ---
+                initialLoading.style.display = 'none';
+                card.style.display = 'block';
+                currentCardIndex = 0;
+                displayCurrentCard();
+                updateWordList();
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+
+            } catch (error) {
+                console.error('Error parsing Excel data:', error);
+                showNotification(error.message || 'Error processing Excel file.', true, 5000);
+                initialLoading.innerHTML = `<p style="color:var(--red-btn);">${error.message}</p>`;
+            }
+        }
+
+        function pronounceWord(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showNotification('Text-to-speech is not supported in your browser.', true);
+            }
+        }
+        
+        function displayCurrentCard() {
+            if (flashcards.length === 0) return;
+
+            const cardData = flashcards[currentCardIndex];
+            
+            wordFront.textContent = cardData.word || 'N/A';
+            cardIcon.textContent = cardData.icon || '📝';
+            description.textContent = cardData.description || 'No description provided.';
+            arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
+
+            progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+
+            document.querySelectorAll('.word-item').forEach((item, index) => {
+                item.classList.toggle('active', index === currentCardIndex);
+            });
+
+            if(card.classList.contains('flipped')) {
+                card.classList.remove('flipped');
+            }
+        }
+
+        function showPreviousCard() {
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            displayCurrentCard();
+        }
+
+        function showNextCard() {
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            displayCurrentCard();
+        }
+
+        function updateWordList() {
+            wordList.innerHTML = '';
+            flashcards.forEach((card, index) => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.textContent = card.word;
+                item.addEventListener('click', () => {
+                    currentCardIndex = index;
+                    displayCurrentCard();
+                });
+                wordList.appendChild(item);
+            });
+            if (wordList.firstChild) {
+                wordList.firstChild.classList.add('active');
+            }
+        }
+
+        function showNotification(message, isError = false, duration = 3000) {
+            notification.textContent = message;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), duration);
+        }
+
+        // --- Initial State ---
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+
+    </script>
+</body>
+</html>
+
