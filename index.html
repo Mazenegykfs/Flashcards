@@ -206,6 +206,22 @@
             flex-direction: column;
             justify-content: space-around;
         }
+        
+        .quiz-length-selector {
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        #quizLengthInput {
+            width: 100px;
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-left: 10px;
+        }
 
         .quiz-header {
             display: flex;
@@ -339,6 +355,10 @@
                         <!-- Quiz Level Selector -->
                         <div id="levelSelectView" class="level-selector-section hidden">
                              <h2>Select Quiz Level</h2>
+                             <div class="quiz-length-selector">
+                                 <label for="quizLengthInput">Number of Questions:</label>
+                                 <input type="number" id="quizLengthInput" value="20" min="4">
+                             </div>
                              <button id="level1Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
                              <button id="level2Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
                         </div>
@@ -400,6 +420,7 @@
         const memorizeModeBtn = document.getElementById('memorizeModeBtn');
         const quizModeBtn = document.getElementById('quizModeBtn');
         const memorizeNav = document.getElementById('memorizeNav');
+        const quizLengthInput = document.getElementById('quizLengthInput');
         const quizProgress = document.getElementById('quizProgress');
         const quizScore = document.getElementById('quizScore');
         const restartQuizBtn = document.getElementById('restartQuizBtn');
@@ -418,8 +439,7 @@
         let quizQuestions = [];
         let currentQuizIndex = 0;
         let score = 0;
-        const QUIZ_LENGTH = 20;
-
+        
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
             'orange': '#ffa500', 'purple': '#800080', 'pink': '#ffc0cb', 'black': '#000000',
@@ -454,7 +474,7 @@
                 
                 const excelFiles = files
                     .filter(file => file.name.endsWith('.xlsx'))
-                    .sort((a, b) => a.name.localeCompare(b.name)); // Sort files alphabetically
+                    .sort((a, b) => a.name.localeCompare(b.name));
                 
                 if (excelFiles.length === 0) throw new Error('No .xlsx files found in the GitHub repository.');
 
@@ -511,7 +531,7 @@
                 const data = await response.arrayBuffer();
                 processExcelData(data);
                 appContainer.classList.remove('hidden');
-                switchMode('memorize'); // Default to memorize mode after loading
+                switchMode('memorize');
             } catch (error) {
                 console.error('Error fetching/processing Excel file:', error);
                 showNotification(`Failed to load ${fileSelect.value}.`, true);
@@ -544,6 +564,10 @@
 
                 showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
                 
+                // Set up quiz length input
+                quizLengthInput.max = flashcards.length;
+                quizLengthInput.value = Math.min(20, flashcards.length);
+
                 currentCardIndex = 0;
                 displayCurrentCard();
                 updateWordList();
@@ -574,12 +598,11 @@
             wordFront.textContent = cardData.word || 'N/A';
             cardIcon.textContent = cardData.icon || '📝';
             
-            // --- Color Logic ---
             if (colorMap[wordLower]) {
                 cardIcon.style.color = colorMap[wordLower];
                 cardIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000, 0 0 5px #000' : 'none';
             } else {
-                cardIcon.style.color = ''; // Reset to default
+                cardIcon.style.color = '';
                 cardIcon.style.textShadow = 'none';
             }
 
@@ -587,7 +610,6 @@
             arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
             progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
             
-            // Update active item by matching word, not index, to support the sorted list
             const currentWord = cardData.word;
             document.querySelectorAll('.word-item').forEach(item => {
                 item.classList.toggle('active', item.textContent === currentWord);
@@ -610,7 +632,6 @@
 
         function updateWordList() {
             wordList.innerHTML = '';
-            // Create a sorted copy for display purposes
             const sortedFlashcards = [...flashcards].sort((a, b) => a.word.localeCompare(b.word));
 
             sortedFlashcards.forEach((cardData) => {
@@ -618,7 +639,6 @@
                 item.className = 'word-item';
                 item.textContent = cardData.word;
                 item.addEventListener('click', () => {
-                    // Find the original index of the clicked word to keep navigation consistent
                     const originalIndex = flashcards.findIndex(card => card.word === cardData.word);
                     if (originalIndex !== -1) {
                         currentCardIndex = originalIndex;
@@ -627,18 +647,21 @@
                 });
                 wordList.appendChild(item);
             });
-            // Initial active state update is handled by displayCurrentCard
         }
         
-        // --- Quiz Mode Functions ---
         function startQuiz() {
             levelSelectView.classList.add('hidden');
             quizView.classList.remove('hidden');
 
             score = 0;
             currentQuizIndex = 0;
+            
+            let desiredLength = parseInt(quizLengthInput.value);
+            if (isNaN(desiredLength) || desiredLength < 4) { desiredLength = 4; }
+            if (desiredLength > flashcards.length) { desiredLength = flashcards.length; }
+            
             const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
-            quizQuestions = shuffled.slice(0, Math.min(flashcards.length, QUIZ_LENGTH));
+            quizQuestions = shuffled.slice(0, desiredLength);
             displayQuizQuestion();
         }
 
@@ -674,12 +697,11 @@
                 quizQuestionIcon.textContent = questionData.icon || '📝';
                 quizQuestionWord.textContent = questionData.word;
                 
-                // --- Color Logic for Quiz Level 1 ---
                 if (colorMap[wordLower]) {
                     quizQuestionIcon.style.color = colorMap[wordLower];
                     quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
                 } else {
-                    quizQuestionIcon.style.color = ''; // Reset
+                    quizQuestionIcon.style.color = '';
                     quizQuestionIcon.style.textShadow = 'none';
                 }
 
