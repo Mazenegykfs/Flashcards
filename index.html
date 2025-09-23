@@ -318,6 +318,35 @@
         .hidden { display: none !important; }
 
         @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+        
+        .lang-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 25px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .lang-btn {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            background-color: transparent;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -346,14 +375,18 @@
 
             <main class="main-content">
                  <div class="flashcard-section">
-                    <!-- Search Section -->
-                    <div id="searchSection" class="hidden">
-                        <input type="text" id="searchInput" placeholder="Search words (use * for wildcard)...">
-                        <div id="searchResults" class="word-list" style="margin-top: 0; margin-bottom: 20px; max-height: 250px;"></div>
-                    </div>
+                     <!-- Search Section -->
+                     <div id="searchSection" class="hidden">
+                         <div class="lang-selector" style="margin-bottom: 15px; text-align: center;">
+                            <button class="lang-btn active" data-lang="en">Search English</button>
+                            <button class="lang-btn" data-lang="ar">Search Arabic</button>
+                        </div>
+                         <input type="text" id="searchInput" placeholder="Search words (use * for wildcard)...">
+                         <div id="searchResults" class="word-list" style="margin-top: 0; margin-bottom: 20px; max-height: 250px;"></div>
+                     </div>
 
-                    <!-- Quiz Level Selector -->
-                    <div id="levelSelectView" class="level-selector-section hidden">
+                     <!-- Quiz Level Selector -->
+                     <div id="levelSelectView" class="level-selector-section hidden">
                          <h2>Select Quiz Level</h2>
                          <div class="quiz-length-selector">
                              <label for="quizLengthInput">Number of Questions:</label>
@@ -361,50 +394,51 @@
                          </div>
                          <button id="level1Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
                          <button id="level2Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
-                    </div>
+                     </div>
 
-                    <div class="card-container" id="cardContainer">
-                        <!-- Memorize View -->
-                        <div class="card" id="memorizeView">
-                            <div class="card-face card-front">
-                                <div class="card-icon" id="cardIcon">📚</div>
-                                <div class="word-container">
-                                    <div class="word" id="wordFront"></div>
-                                    <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
-                                </div>
-                            </div>
-                            <div class="card-face card-back">
-                                <div class="description" id="description"></div>
-                                <div class="arabic-meaning" id="arabicMeaning"></div>
-                            </div>
-                        </div>
+                     <div class="card-container" id="cardContainer">
+                         <!-- Memorize View -->
+                         <div class="card" id="memorizeView">
+                             <div class="card-face card-front">
+                                 <div class="card-icon" id="cardIcon">📚</div>
+                                 <div class="word-container">
+                                     <div class="word" id="wordFront"></div>
+                                     <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+                                 </div>
+                             </div>
+                             <div class="card-face card-back">
+                                 <div class="description" id="description"></div>
+                                 <div class="arabic-meaning" id="arabicMeaning"></div>
+                             </div>
+                         </div>
 
-                        <!-- Quiz View -->
-                        <div id="quizView" class="quiz-view hidden">
-                            <div class="quiz-header">
-                                <div class="quiz-progress" id="quizProgress">Question: 0/0</div>
-                                <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
-                                <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
-                            </div>
-                            <div class="quiz-question" id="quizQuestion">
+                         <!-- Quiz View -->
+                         <div id="quizView" class="quiz-view hidden">
+                             <div class="quiz-header">
+                                 <div class="quiz-progress" id="quizProgress">Question: 0/0</div>
+                                 <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
+                                 <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
+                             </div>
+                             <div class="quiz-question" id="quizQuestion">
                                  <span id="quizQuestionText"></span>
                                  <div id="quizQuestionLevel1" class="hidden">
-                                    <div id="quizQuestionIcon"></div>
-                                    <div id="quizQuestionWord"></div>
+                                     <div id="quizQuestionIcon"></div>
+                                     <div id="quizQuestionWord"></div>
                                  </div>
-                            </div>
-                            <div class="quiz-options" id="quizOptions"></div>
-                        </div>
-                    </div>
+                             </div>
+                             <div class="quiz-options" id="quizOptions"></div>
+                         </div>
+                     </div>
 
-                    <div class="navigation" id="memorizeNav">
-                        <button class="btn red" id="prevBtn">⬅️ Previous</button>
-                        <div class="progress" id="progress">0 / 0</div>
-                        <button class="btn green" id="nextBtn">Next ➡️</button>
-                    </div>
+                     <div class="navigation" id="memorizeNav">
+                         <button class="btn red" id="prevBtn">⬅️ Previous</button>
+                         <div class="progress" id="progress">0 / 0</div>
+                         <button class="btn" id="shuffleBtn" style="background-color: var(--primary);">🔀 Shuffle</button>
+                         <button class="btn green" id="nextBtn">Next ➡️</button>
+                     </div>
 
-                    <div class="word-list" id="wordList"></div>
-                </div>
+                     <div class="word-list" id="wordList"></div>
+                 </div>
             </main>
         </div>
     </div>
@@ -430,6 +464,7 @@
         const cardIcon = document.getElementById('cardIcon');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
         const progress = document.getElementById('progress');
         const wordList = document.getElementById('wordList');
         const notification = document.getElementById('notification');
@@ -451,11 +486,13 @@
         const searchSection = document.getElementById('searchSection');
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
+        const langBtns = document.querySelectorAll('.lang-btn');
 
         // --- App State ---
         let flashcards = [];
         let currentCardIndex = 0;
         let currentMode = 'memorize';
+        let searchLanguage = 'en'; // 'en' or 'ar'
         let currentQuizLevel = 1;
         let quizQuestions = [];
         let currentQuizIndex = 0;
@@ -475,6 +512,7 @@
         card.addEventListener('click', () => card.classList.toggle('flipped'));
         prevBtn.addEventListener('click', showPreviousCard);
         nextBtn.addEventListener('click', showNextCard);
+        shuffleBtn.addEventListener('click', shuffleCards);
         pronounceBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (wordFront.textContent) pronounceWord(wordFront.textContent);
@@ -486,6 +524,20 @@
         level1Btn.addEventListener('click', () => { currentQuizLevel = 1; startQuiz(); });
         level2Btn.addEventListener('click', () => { currentQuizLevel = 2; startQuiz(); });
         restartQuizBtn.addEventListener('click', startQuiz);
+
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                searchLanguage = btn.dataset.lang;
+                searchInput.placeholder = searchLanguage === 'en'
+                    ? 'Search words (use * for wildcard)...'
+                    : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
+                searchInput.value = ''; // Clear input on switch
+                performSearch(); 
+            });
+        });
         
         // --- Functions ---
         async function fetchFileListFromGitHub() {
@@ -550,6 +602,10 @@
                 searchSection.classList.remove('hidden');
                 cardContainer.classList.remove('hidden');
                 memorizeView.classList.remove('hidden');
+                searchInput.placeholder = searchLanguage === 'en'
+                    ? 'Search words (use * for wildcard)...'
+                    : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
                 showSearchPromptCard();
             } else { // 'quiz'
                 levelSelectView.classList.remove('hidden');
@@ -664,11 +720,26 @@
             displayCurrentCard();
         }
 
+        function shuffleCards() {
+            if (flashcards.length < 2) {
+                showNotification("Not enough cards to shuffle.", true);
+                return;
+            }
+            // Fisher-Yates shuffle algorithm
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            currentCardIndex = 0;
+            updateWordList();
+            displayCurrentCard();
+            showNotification("🔀 Cards have been shuffled!");
+        }
+
         function updateWordList() {
             wordList.innerHTML = '';
-            const sortedFlashcards = [...flashcards].sort((a, b) => a.word.localeCompare(b.word));
-
-            sortedFlashcards.forEach((cardData) => {
+            // No longer sorting alphabetically to reflect the current (possibly shuffled) order
+            flashcards.forEach((cardData) => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
                 item.textContent = cardData.word;
@@ -681,6 +752,11 @@
                 });
                 wordList.appendChild(item);
             });
+             // Highlight the current card in the newly ordered list
+            const currentItem = wordList.children[currentCardIndex];
+            if (currentItem) {
+                currentItem.classList.add('active');
+            }
         }
         
         function showSearchPromptCard() {
@@ -701,7 +777,8 @@
             }
 
             const regex = new RegExp(query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*'), 'i');
-            const results = flashcards.filter(card => regex.test(card.word));
+            const searchKey = searchLanguage === 'en' ? 'word' : 'arabicMeaning';
+            const results = flashcards.filter(card => regex.test(card[searchKey]));
             displaySearchResults(results);
         }
 
@@ -711,13 +788,19 @@
                 searchResults.innerHTML = '<div class="word-item" style="cursor:default; background:none;">No results found.</div>';
                 return;
             }
+            
+            const displayKey = searchLanguage === 'en' ? 'word' : 'arabicMeaning';
 
             results.forEach(cardData => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
-                item.textContent = cardData.word;
+                item.textContent = cardData[displayKey];
+                 if (searchLanguage === 'ar') {
+                    item.style.direction = 'rtl';
+                }
+
                 item.addEventListener('click', () => {
-                    const originalIndex = flashcards.findIndex(card => card.word === cardData.word);
+                    const originalIndex = flashcards.findIndex(card => card.word === cardData.word && card.arabicMeaning === cardData.arabicMeaning);
                     if (originalIndex !== -1) {
                         currentCardIndex = originalIndex;
                         displayCurrentCard();
@@ -754,14 +837,17 @@
                 else if (percentage >= 50) { stars = '⭐'; icon = '👍'; } 
                 else { stars = 'Try Again!'; icon = '😔'; }
 
-                quizQuestion.innerHTML = `<div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2>`;
-                quizOptions.innerHTML = `<p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p>
-                                         <div style="font-size: 2.5rem;">${stars}</div>`;
+                quizQuestionLevel1.classList.add('hidden');
+                quizQuestionText.classList.remove('hidden');
+                quizQuestionText.innerHTML = `<div style="text-align: center;"><div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2></div>`;
+
+                quizOptions.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;"><p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p><div style="font-size: 2.5rem;">${stars}</div></div>`;
                 quizScore.innerHTML = `🏆 Final Score: ${score}/${quizQuestions.length}`;
                 quizProgress.textContent = "Finished!";
                 return;
             }
             
+            quizQuestionText.innerHTML = '';
             quizProgress.textContent = `Question: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
             quizScore.innerHTML = `🏆 Score: ${score} / ${quizQuestions.length}`;
             const questionData = quizQuestions[currentQuizIndex];
