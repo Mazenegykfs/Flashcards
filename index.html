@@ -347,6 +347,27 @@
             color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
+        .controls-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        #speedControl {
+            width: 150px;
+        }
+
+        #speedValue {
+            font-weight: bold;
+            color: var(--primary);
+            min-width: 40px;
+        }
     </style>
 </head>
 <body>
@@ -395,6 +416,13 @@
                          <button id="level1Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
                          <button id="level2Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
                      </div>
+                     
+                     <div id="controlsSection" class="controls-section hidden">
+                         <label for="speedControl"><strong>Voice Speed:</strong></label>
+                         <input type="range" id="speedControl" min="0.5" max="2" value="1" step="0.1">
+                         <span id="speedValue">1.0x</span>
+                     </div>
+
 
                      <div class="card-container" id="cardContainer">
                          <!-- Memorize View -->
@@ -489,6 +517,9 @@
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
         const langBtns = document.querySelectorAll('.lang-btn');
+        const controlsSection = document.getElementById('controlsSection');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
 
         // --- App State ---
         let flashcards = [];
@@ -501,6 +532,7 @@
         let score = 0;
         let isAutoplaying = false;
         let autoplayInterval = null;
+        let speechRate = 1.0;
         
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
@@ -544,6 +576,11 @@
             });
         });
         
+        speedControl.addEventListener('input', (e) => {
+            speechRate = parseFloat(e.target.value);
+            speedValue.textContent = `${speechRate.toFixed(1)}x`;
+        });
+
         // --- Functions ---
         async function fetchFileListFromGitHub() {
             const repoUrl = 'https://api.github.com/repos/Mazenegykfs/Flashcards/contents/';
@@ -596,9 +633,11 @@
             wordList.classList.add('hidden');
             quizView.classList.add('hidden');
             memorizeView.classList.add('hidden');
+            controlsSection.classList.add('hidden');
 
 
             if (mode === 'memorize') {
+                controlsSection.classList.remove('hidden');
                 cardContainer.classList.remove('hidden');
                 memorizeView.classList.remove('hidden');
                 memorizeNav.classList.remove('hidden');
@@ -680,6 +719,7 @@
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
+                utterance.rate = speechRate;
                 window.speechSynthesis.speak(utterance);
             } else {
                 showNotification('Text-to-speech not supported.', true);
