@@ -300,7 +300,7 @@
         }
         .pronounce-btn:hover { transform: scale(1.1); }
 
-        .navigation { display: flex; justify-content: space-between; align-items: center; }
+        .navigation { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .progress { font-weight: bold; }
         .word-list { margin-top: 20px; max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; }
         .word-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: all 0.2s ease; border-radius: 5px; }
@@ -434,6 +434,7 @@
                          <button class="btn red" id="prevBtn">⬅️ Previous</button>
                          <div class="progress" id="progress">0 / 0</div>
                          <button class="btn" id="shuffleBtn" style="background-color: var(--primary);">🔀 Shuffle</button>
+                         <button class="btn" id="autoplayBtn" style="background-color: var(--accent);">▶️ Autoplay</button>
                          <button class="btn green" id="nextBtn">Next ➡️</button>
                      </div>
 
@@ -465,6 +466,7 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const shuffleBtn = document.getElementById('shuffleBtn');
+        const autoplayBtn = document.getElementById('autoplayBtn');
         const progress = document.getElementById('progress');
         const wordList = document.getElementById('wordList');
         const notification = document.getElementById('notification');
@@ -497,6 +499,8 @@
         let quizQuestions = [];
         let currentQuizIndex = 0;
         let score = 0;
+        let isAutoplaying = false;
+        let autoplayInterval = null;
         
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
@@ -513,6 +517,7 @@
         prevBtn.addEventListener('click', showPreviousCard);
         nextBtn.addEventListener('click', showNextCard);
         shuffleBtn.addEventListener('click', shuffleCards);
+        autoplayBtn.addEventListener('click', toggleAutoplay);
         pronounceBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (wordFront.textContent) pronounceWord(wordFront.textContent);
@@ -577,6 +582,7 @@
                 showNotification("Please load a card set first.", true);
                 return;
             }
+            stopAutoplay();
             currentMode = mode;
             memorizeModeBtn.classList.toggle('active', mode === 'memorize');
             searchModeBtn.classList.toggle('active', mode === 'search');
@@ -709,6 +715,7 @@
         }
 
         function showPreviousCard() {
+            stopAutoplay();
             if (flashcards.length === 0) return;
             currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
             displayCurrentCard();
@@ -721,6 +728,7 @@
         }
 
         function shuffleCards() {
+            stopAutoplay();
             if (flashcards.length < 2) {
                 showNotification("Not enough cards to shuffle.", true);
                 return;
@@ -744,6 +752,7 @@
                 item.className = 'word-item';
                 item.textContent = cardData.word;
                 item.addEventListener('click', () => {
+                    stopAutoplay();
                     const originalIndex = flashcards.findIndex(card => card.word === cardData.word);
                     if (originalIndex !== -1) {
                         currentCardIndex = originalIndex;
@@ -930,6 +939,56 @@
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), duration);
         }
+
+        // --- Autoplay Functions ---
+        function toggleAutoplay() {
+            if (isAutoplaying) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        }
+
+        function startAutoplay() {
+            if (!flashcards.length) return;
+            isAutoplaying = true;
+            autoplayBtn.innerHTML = '⏹️ Stop';
+            autoplayBtn.style.backgroundColor = 'var(--red-btn)';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            shuffleBtn.disabled = true;
+            wordList.style.pointerEvents = 'none';
+
+            const playCard = () => {
+                if (!isAutoplaying) return;
+                pronounceWord(flashcards[currentCardIndex].word);
+                setTimeout(() => {
+                    if (isAutoplaying) card.classList.add('flipped');
+                }, 2000); 
+            };
+
+            playCard(); 
+
+            autoplayInterval = setInterval(() => {
+                showNextCard(); 
+                setTimeout(playCard, 800); 
+            }, 5000);
+        }
+
+        function stopAutoplay() {
+            if (!isAutoplaying) return;
+            isAutoplaying = false;
+            clearInterval(autoplayInterval);
+            autoplayInterval = null;
+            window.speechSynthesis.cancel();
+            autoplayBtn.innerHTML = '▶️ Autoplay';
+            autoplayBtn.style.backgroundColor = 'var(--accent)';
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+            shuffleBtn.disabled = false;
+            wordList.style.pointerEvents = 'auto';
+        }
+
     </script>
 </body>
 </html>
