@@ -270,7 +270,7 @@
         .word-item.active { background-color: var(--primary); color: white; font-weight: bold; }
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: center; gap: 10px; }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: flex-start; gap: 10px; max-width: 350px; text-align: left; }
         .notification.error { background: var(--red-btn); }
         .notification.show { transform: translateX(0); }
         .hidden { display: none !important; }
@@ -766,6 +766,7 @@
         let pairsToMatch = 0;
         // Hangman State
         let hangmanWordToGuess = '';
+        let hangmanCardToGuess = null;
         let hangmanGuessedLetters = [];
         let hangmanWrongGuesses = 0;
         const HANGMAN_MAX_WRONG = 6;
@@ -822,8 +823,9 @@
         skipScrambleBtn.addEventListener('click', () => {
             scrambleGuessInput.disabled = true;
             scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
-            showNotification(`The word was: ${scrambleWordToGuess.word}`, false, 3000);
-            setTimeout(nextScrambleWord, 3000);
+            const details = createWordDetailHTML(scrambleWordToGuess);
+            showNotification(`The word was: ${scrambleWordToGuess.word}${details}`, false, 5000);
+            setTimeout(nextScrambleWord, 5000);
         });
         scrambleGuessInput.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') checkScrambleGuess();
@@ -1276,6 +1278,15 @@
             wordList.style.pointerEvents = 'auto';
         }
 
+        function createWordDetailHTML(card) {
+            if (!card) return '';
+            const descriptionText = card.description ? `<b>Description:</b> ${card.description}` : '';
+            return `<br><div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.5); padding-top: 8px;">
+                        <span style="direction: rtl; display: block; text-align: right;"><b>المعنى:</b> ${card.arabicMeaning}</span>
+                        <small>${descriptionText}</small>
+                    </div>`;
+        }
+
         // --- Game Functions ---
         // Matching Game
         function startMatchingGame() {
@@ -1373,7 +1384,8 @@
                 switchMode('games');
                 return;
             }
-            hangmanWordToGuess = validHangmanWords[Math.floor(Math.random() * validHangmanWords.length)].word.toUpperCase();
+            hangmanCardToGuess = validHangmanWords[Math.floor(Math.random() * validHangmanWords.length)];
+            hangmanWordToGuess = hangmanCardToGuess.word.toUpperCase();
             
             updateHangmanLives();
             drawHangmanWord();
@@ -1427,10 +1439,12 @@
         function checkHangmanWinLoss() {
             const isWon = hangmanWordToGuess.split('').every(letter => hangmanGuessedLetters.includes(letter) || !/[A-Z]/.test(letter));
             if (isWon) {
-                showNotification('🎉 You won!', false, 4000);
+                const details = createWordDetailHTML(hangmanCardToGuess);
+                showNotification(`🎉 You won! The word was ${hangmanWordToGuess}.${details}`, false, 6000);
                 hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
             } else if (hangmanWrongGuesses >= HANGMAN_MAX_WRONG) {
-                showNotification(`😭 You lost. The word was: ${hangmanWordToGuess}`, true, 5000);
+                const details = createWordDetailHTML(hangmanCardToGuess);
+                showNotification(`😭 You lost. The word was: ${hangmanWordToGuess}.${details}`, true, 7000);
                 hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(letter => `<div class="letter-box">${letter}</div>`).join('');
                 hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
             }
@@ -1469,17 +1483,19 @@
             scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
 
             if (isCorrect) {
-                showNotification('✅ Correct!', false, 2000);
+                const details = createWordDetailHTML(scrambleWordToGuess);
+                showNotification(`✅ Correct! ${scrambleWordToGuess.word}${details}`, false, 4000);
                 scrambleScore++;
                 updateScrambleScore();
-                setTimeout(nextScrambleWord, 2000);
+                setTimeout(nextScrambleWord, 4000);
             } else {
-                showNotification(`❌ Incorrect. The word was: ${scrambleWordToGuess.word}`, true, 3000);
+                const details = createWordDetailHTML(scrambleWordToGuess);
+                showNotification(`❌ Incorrect. The word was: ${scrambleWordToGuess.word}${details}`, true, 5000);
                 scrambleGuessInput.style.animation = 'shake 0.5s';
                 setTimeout(() => {
                     scrambleGuessInput.style.animation = '';
                     nextScrambleWord();
-                }, 3000);
+                }, 5000);
             }
         }
 
@@ -1490,4 +1506,5 @@
     </script>
 </body>
 </html>
+
 
