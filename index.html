@@ -19,14 +19,12 @@
             --red-btn: #f44336;   /* Red Button */
             --header-bg: #00796b;
         }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         body {
             background: var(--bg-color);
             min-height: 100vh;
@@ -36,13 +34,11 @@
             flex-direction: column;
             align-items: center;
         }
-
         .container {
             max-width: 800px;
             width: 100%;
             margin: 0 auto;
         }
-
         header {
             text-align: center;
             margin-bottom: 20px;
@@ -52,17 +48,14 @@
             color: white;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
-
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
-
         .subtitle {
             font-size: 1.2rem;
             opacity: 0.9;
         }
-        
         .file-selector-section, .level-selector-section {
             background: white;
             padding: 25px;
@@ -71,7 +64,6 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             text-align: center;
         }
-        
         #fileSelect {
             width: 100%;
             padding: 15px;
@@ -80,7 +72,6 @@
             border: 2px solid var(--accent);
             margin-bottom: 15px;
         }
-        
         .mode-selector {
             background: white;
             padding: 10px;
@@ -90,7 +81,6 @@
             gap: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
         .mode-btn, .level-btn {
             flex: 1;
             padding: 12px 20px;
@@ -107,20 +97,17 @@
             justify-content: center;
             gap: 8px;
         }
-        
         .mode-btn.active {
             background-color: var(--header-bg);
             color: white;
             box-shadow: 0 4px 10px rgba(0, 121, 107, 0.3);
         }
-
         .flashcard-section {
             background: white;
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
         #searchInput {
             width: 100%;
             padding: 15px;
@@ -129,7 +116,6 @@
             border: 2px solid var(--accent);
             margin-bottom: 15px;
         }
-        
         .btn {
             color: white;
             border: none;
@@ -146,28 +132,23 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             font-size: 1rem;
         }
-        
         .btn.green { background: var(--green-btn); }
         .btn.red { background: var(--red-btn); }
-
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
-        
         .btn:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-
         .card-container {
             perspective: 1000px;
             height: 400px;
             margin-bottom: 30px;
         }
-
         .card {
             width: 100%;
             height: 100%;
@@ -178,11 +159,9 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             cursor: pointer;
         }
-
         .card.flipped {
             transform: rotateY(180deg);
         }
-
         .card-face {
             position: absolute;
             width: 100%;
@@ -196,32 +175,27 @@
             align-items: center;
             text-align: center;
         }
-
         .card-front {
             background: linear-gradient(135deg, #81d4fa, #4fc3f7);
             color: white;
         }
-
         .card-back {
             background: linear-gradient(135deg, #f1f8e9, #dcedc8);
             color: var(--dark);
             transform: rotateY(180deg);
             overflow-y: auto;
         }
-        
         .quiz-view {
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
         }
-        
         .quiz-length-selector {
             margin: 20px 0;
             font-size: 1.2rem;
             font-weight: 500;
         }
-
         #quizLengthInput {
             width: 100px;
             padding: 10px;
@@ -231,7 +205,6 @@
             border: 2px solid var(--accent);
             margin-left: 10px;
         }
-
         .quiz-header {
             display: flex;
             justify-content: space-between;
@@ -241,21 +214,16 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-
         .quiz-score, .quiz-progress { font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        
         .quiz-question { font-size: 1.3rem; margin-bottom: 20px; font-weight: 500; }
-        
         #quizQuestionLevel1 { display: flex; flex-direction: column; align-items: center; gap: 15px; }
         #quizQuestionIcon { font-size: 4rem; }
         #quizQuestionWord { font-size: 2.5rem; font-weight: bold; }
-
         .quiz-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
-        
         .option-btn {
             width: 100%;
             padding: 15px;
@@ -267,39 +235,32 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
         .option-btn:hover:not(:disabled) {
             background-color: var(--primary);
             color: white;
         }
-        
         .option-btn.correct { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
         .option-btn.incorrect { background-color: var(--red-btn) !important; color: white !important; border-color: var(--red-btn) !important; }
         .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
-
         .word-container {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 20px;
         }
-
         .word {
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 15px;
         }
-        
         .description { font-size: 1.1rem; margin-bottom: 20px; }
         .arabic-meaning { font-size: 1.8rem; font-weight: bold; color: var(--primary); direction: rtl; font-family: 'Tahoma', sans-serif; }
         .card-icon { font-size: 4rem; margin-bottom: 20px; }
-        
         .pronounce-btn {
             background: none; border: none; font-size: 2.5rem; color: white; cursor: pointer;
             transition: transform 0.2s; padding: 0; line-height: 1;
         }
         .pronounce-btn:hover { transform: scale(1.1); }
-
         .navigation { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .progress { font-weight: bold; }
         .word-list { margin-top: 20px; max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; }
@@ -307,18 +268,13 @@
         .word-item:last-child { border-bottom: none; }
         .word-item:hover { background-color: rgba(76, 201, 240, 0.1); }
         .word-item.active { background-color: var(--primary); color: white; font-weight: bold; }
-
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: center; gap: 10px; }
         .notification.error { background: var(--red-btn); }
         .notification.show { transform: translateX(0); }
-
         .hidden { display: none !important; }
-
         @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
-        
         .lang-selector {
             display: flex;
             justify-content: center;
@@ -330,7 +286,6 @@
             margin-left: auto;
             margin-right: auto;
         }
-
         .lang-btn {
             flex: 1;
             padding: 8px 15px;
@@ -341,13 +296,11 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-
         .lang-btn.active {
             background-color: var(--primary);
             color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
         .controls-section {
             display: flex;
             flex-wrap: wrap;
@@ -359,33 +312,101 @@
             border-radius: 10px;
             margin-bottom: 20px;
         }
-
         .control-group {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .checkbox-group {
             display: flex;
             gap: 15px;
         }
-
         .checkbox-group label {
             display: flex;
             align-items: center;
             gap: 5px;
             cursor: pointer;
         }
-
         #speedControl {
             width: 150px;
         }
-
         #speedValue {
             font-weight: bold;
             color: var(--primary);
             min-width: 40px;
+        }
+
+        /* --- Game Styles --- */
+        .game-menu {
+            text-align: center;
+        }
+        .game-menu h2 {
+            margin-bottom: 20px;
+        }
+        .game-menu .btn {
+            width: 80%;
+            max-width: 300px;
+            margin: 10px auto;
+            font-size: 1.2rem;
+        }
+        #matchingGameContainer {
+            min-height: 400px;
+        }
+        #matchingGameHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        #matchBoard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .matching-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .match-item {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            background-color: #fafafa;
+        }
+        .match-item:hover {
+            border-color: var(--primary);
+            background-color: #f0f8ff;
+        }
+        .match-item.selected {
+            border-color: var(--primary);
+            background-color: var(--accent);
+            color: white;
+        }
+        .match-item.correct {
+            border-color: var(--success);
+            background-color: var(--success);
+            color: white;
+            transform: scale(1.05);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .match-item.incorrect {
+            border-color: var(--red-btn);
+            background-color: var(--red-btn);
+            color: white;
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
     </style>
 </head>
@@ -411,6 +432,7 @@
                 <button class="mode-btn active" id="memorizeModeBtn">🧠 Memorize</button>
                 <button class="mode-btn" id="searchModeBtn">🔍 Search</button>
                 <button class="mode-btn" id="quizModeBtn">🏆 Quiz</button>
+                <button class="mode-btn" id="gamesModeBtn">🎮 Games</button>
             </div>
 
             <main class="main-content">
@@ -435,7 +457,27 @@
                          <button id="level1Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
                          <button id="level2Btn" class="btn green" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
                      </div>
-                     
+
+                     <!-- Games Section -->
+                     <div id="gamesSection" class="hidden">
+                         <div id="gameMenuView" class="game-menu">
+                             <h2>Vocabulary Games</h2>
+                             <button id="startMatchingGameBtn" class="btn green">Matching Game</button>
+                             <button class="btn" style="background-color: var(--warning);" disabled>Hangman (soon)</button>
+                             <button class="btn" style="background-color: var(--accent);" disabled>Word Scramble (soon)</button>
+                         </div>
+                         <div id="matchingGameContainer" class="hidden">
+                             <div id="matchingGameHeader">
+                                 <span id="matchScore">Score: 0</span>
+                                 <button id="restartMatchingGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="matchBoard">
+                                 <div class="matching-column" id="matchWordsColumn"></div>
+                                 <div class="matching-column" id="matchMeaningsColumn"></div>
+                             </div>
+                         </div>
+                     </div>
+
                      <div id="controlsSection" class="controls-section hidden">
                          <div class="control-group">
                             <label for="speedControl"><strong>Voice Speed:</strong></label>
@@ -449,7 +491,6 @@
                             <label><input type="checkbox" id="pronounceDescriptionCheck"> Description</label>
                          </div>
                      </div>
-
 
                      <div class="card-container" id="cardContainer">
                          <!-- Memorize View -->
@@ -529,6 +570,7 @@
         const memorizeModeBtn = document.getElementById('memorizeModeBtn');
         const searchModeBtn = document.getElementById('searchModeBtn');
         const quizModeBtn = document.getElementById('quizModeBtn');
+        const gamesModeBtn = document.getElementById('gamesModeBtn');
         const memorizeNav = document.getElementById('memorizeNav');
         const quizLengthInput = document.getElementById('quizLengthInput');
         const quizProgress = document.getElementById('quizProgress');
@@ -550,21 +592,35 @@
         const pronounceWordCheck = document.getElementById('pronounceWordCheck');
         const pronounceArabicCheck = document.getElementById('pronounceArabicCheck');
         const pronounceDescriptionCheck = document.getElementById('pronounceDescriptionCheck');
-
+        // Game Elements
+        const gamesSection = document.getElementById('gamesSection');
+        const gameMenuView = document.getElementById('gameMenuView');
+        const startMatchingGameBtn = document.getElementById('startMatchingGameBtn');
+        const matchingGameContainer = document.getElementById('matchingGameContainer');
+        const restartMatchingGameBtn = document.getElementById('restartMatchingGameBtn');
+        const matchScoreEl = document.getElementById('matchScore');
+        const matchWordsColumn = document.getElementById('matchWordsColumn');
+        const matchMeaningsColumn = document.getElementById('matchMeaningsColumn');
 
         // --- App State ---
         let flashcards = [];
         let currentCardIndex = 0;
         let currentMode = 'memorize';
         let searchLanguage = 'en'; // 'en' or 'ar'
+        let isAutoplaying = false;
+        let autoplayTimeout = null;
+        let speechRate = 1.0;
+        // Quiz State
         let currentQuizLevel = 1;
         let quizQuestions = [];
         let currentQuizIndex = 0;
         let score = 0;
-        let isAutoplaying = false;
-        let autoplayTimeout = null;
-        let speechRate = 1.0;
-        
+        // Game State
+        let selectedWordEl = null;
+        let selectedMeaningEl = null;
+        let matchScore = 0;
+        let pairsToMatch = 0;
+
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
             'orange': '#ffa500', 'purple': '#800080', 'pink': '#ffc0cb', 'black': '#000000',
@@ -572,14 +628,13 @@
             'cyan': '#00ffff', 'magenta': '#ff00ff', 'lime': '#00ff00', 'maroon': '#800000',
             'navy': '#000080', 'olive': '#808000', 'teal': '#008080', 'silver': '#c0c0c0', 'gold': '#ffd700'
         };
-        
+
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', fetchFileListFromGitHub);
         loadCardsBtn.addEventListener('click', loadSelectedFile);
         card.addEventListener('click', async () => {
             card.classList.toggle('flipped');
             if (isAutoplaying) return; 
-
             if (card.classList.contains('flipped')) {
                 const cardData = flashcards[currentCardIndex];
                 if (pronounceArabicCheck.checked && cardData.arabicMeaning) {
@@ -605,10 +660,13 @@
         memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
         searchModeBtn.addEventListener('click', () => switchMode('search'));
         quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        gamesModeBtn.addEventListener('click', () => switchMode('games'));
         searchInput.addEventListener('input', performSearch);
         level1Btn.addEventListener('click', () => { currentQuizLevel = 1; startQuiz(); });
         level2Btn.addEventListener('click', () => { currentQuizLevel = 2; startQuiz(); });
         restartQuizBtn.addEventListener('click', startQuiz);
+        startMatchingGameBtn.addEventListener('click', startMatchingGame);
+        restartMatchingGameBtn.addEventListener('click', startMatchingGame);
 
         langBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -623,7 +681,7 @@
                 performSearch(); 
             });
         });
-        
+
         speedControl.addEventListener('input', (e) => {
             speechRate = parseFloat(e.target.value);
             speedValue.textContent = `${speechRate.toFixed(1)}x`;
@@ -654,7 +712,7 @@
                 fileSelectorContainer.innerHTML = `<p style="color:var(--red-btn);">${error.message}</p>`;
             }
         }
-        
+
         function loadSelectedFile() {
             const selectedFile = fileSelect.value;
             if (!selectedFile) return;
@@ -669,20 +727,12 @@
             }
             stopAutoplay();
             currentMode = mode;
-            memorizeModeBtn.classList.toggle('active', mode === 'memorize');
-            searchModeBtn.classList.toggle('active', mode === 'search');
-            quizModeBtn.classList.toggle('active', mode === 'quiz');
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${mode}ModeBtn`).classList.add('active');
 
-            // Hide all optional / mode-specific sections
-            searchSection.classList.add('hidden');
-            levelSelectView.classList.add('hidden');
-            cardContainer.classList.add('hidden');
-            memorizeNav.classList.add('hidden');
-            wordList.classList.add('hidden');
-            quizView.classList.add('hidden');
-            memorizeView.classList.add('hidden');
-            controlsSection.classList.add('hidden');
-
+            // Hide all views
+            const views = [searchSection, levelSelectView, cardContainer, memorizeNav, wordList, quizView, memorizeView, controlsSection, gamesSection];
+            views.forEach(view => view.classList.add('hidden'));
 
             if (mode === 'memorize') {
                 controlsSection.classList.remove('hidden');
@@ -695,13 +745,15 @@
                 searchSection.classList.remove('hidden');
                 cardContainer.classList.remove('hidden');
                 memorizeView.classList.remove('hidden');
-                searchInput.placeholder = searchLanguage === 'en'
-                    ? 'Search words (use * for wildcard)...'
-                    : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.placeholder = searchLanguage === 'en' ? 'Search words (use * for wildcard)...' : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
                 searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
                 showSearchPromptCard();
-            } else { // 'quiz'
+            } else if (mode === 'quiz') {
                 levelSelectView.classList.remove('hidden');
+            } else if (mode === 'games') {
+                gamesSection.classList.remove('hidden');
+                gameMenuView.classList.remove('hidden');
+                matchingGameContainer.classList.add('hidden');
             }
         }
 
@@ -730,6 +782,7 @@
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
                 const headers = jsonData[0].map(h => String(h).toLowerCase().trim());
                 const wordIndex = headers.indexOf('word');
                 const iconIndex = headers.indexOf('icon');
@@ -743,11 +796,10 @@
                     description: row[descIndex], arabicMeaning: row[arabicIndex]
                 })).filter(card => card.word && card.arabicMeaning);
 
-                if (flashcards.length < 4) throw new Error("At least 4 words with Arabic meanings are needed for the quiz mode.");
+                if (flashcards.length < 8) throw new Error("At least 8 words with Arabic meanings are needed for the games and quiz modes.");
 
                 showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
                 
-                // Set up quiz length input
                 quizLengthInput.max = flashcards.length;
                 quizLengthInput.value = Math.min(20, flashcards.length);
 
@@ -773,7 +825,7 @@
                 showNotification('Text-to-speech not supported.', true);
             }
         }
-        
+
         function pronounceAndDelay(text, lang) {
             return new Promise(resolve => {
                 if (!text || !('speechSynthesis' in window)) {
@@ -788,7 +840,7 @@
                 window.speechSynthesis.speak(utterance);
             });
         }
-        
+
         function displayCurrentCard() {
             if (flashcards.length === 0) return;
             const cardData = flashcards[currentCardIndex];
@@ -836,7 +888,6 @@
                 showNotification("Not enough cards to shuffle.", true);
                 return;
             }
-            // Fisher-Yates shuffle algorithm
             for (let i = flashcards.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
@@ -849,7 +900,6 @@
 
         function updateWordList() {
             wordList.innerHTML = '';
-            // No longer sorting alphabetically to reflect the current (possibly shuffled) order
             flashcards.forEach((cardData) => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
@@ -864,13 +914,12 @@
                 });
                 wordList.appendChild(item);
             });
-             // Highlight the current card in the newly ordered list
             const currentItem = wordList.children[currentCardIndex];
             if (currentItem) {
                 currentItem.classList.add('active');
             }
         }
-        
+
         function showSearchPromptCard() {
             wordFront.textContent = 'Search a Word';
             cardIcon.textContent = '🔍';
@@ -900,17 +949,14 @@
                 searchResults.innerHTML = '<div class="word-item" style="cursor:default; background:none;">No results found.</div>';
                 return;
             }
-            
             const displayKey = searchLanguage === 'en' ? 'word' : 'arabicMeaning';
-
             results.forEach(cardData => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
-                item.textContent = cardData[displayKey];
+                item.textContent = cardData[displayKey]; 
                  if (searchLanguage === 'ar') {
                     item.style.direction = 'rtl';
                 }
-
                 item.addEventListener('click', () => {
                     const originalIndex = flashcards.findIndex(card => card.word === cardData.word && card.arabicMeaning === cardData.arabicMeaning);
                     if (originalIndex !== -1) {
@@ -927,14 +973,11 @@
             cardContainer.classList.remove('hidden');
             quizView.classList.remove('hidden');
             memorizeView.classList.add('hidden');
-
             score = 0;
             currentQuizIndex = 0;
-            
             let desiredLength = parseInt(quizLengthInput.value);
             if (isNaN(desiredLength) || desiredLength < 4) { desiredLength = 4; }
             if (desiredLength > flashcards.length) { desiredLength = flashcards.length; }
-            
             const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
             quizQuestions = shuffled.slice(0, desiredLength);
             displayQuizQuestion();
@@ -943,52 +986,37 @@
         function displayQuizQuestion() {
             if (currentQuizIndex >= quizQuestions.length) {
                 const percentage = score / quizQuestions.length * 100;
-                let stars = ''; let icon = '';
+                let stars = '', icon = '';
                 if (percentage >= 90) { stars = '⭐⭐⭐'; icon = '🏆'; } 
                 else if (percentage >= 70) { stars = '⭐⭐'; icon = '🥇'; } 
                 else if (percentage >= 50) { stars = '⭐'; icon = '👍'; } 
                 else { stars = 'Try Again!'; icon = '😔'; }
-
                 quizQuestionLevel1.classList.add('hidden');
                 quizQuestionText.classList.remove('hidden');
                 quizQuestionText.innerHTML = `<div style="text-align: center;"><div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2></div>`;
-
                 quizOptions.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;"><p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p><div style="font-size: 2.5rem;">${stars}</div></div>`;
                 quizScore.innerHTML = `🏆 Final Score: ${score}/${quizQuestions.length}`;
                 quizProgress.textContent = "Finished!";
                 return;
             }
-            
             quizQuestionText.innerHTML = '';
             quizProgress.textContent = `Question: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
             quizScore.innerHTML = `🏆 Score: ${score} / ${quizQuestions.length}`;
             const questionData = quizQuestions[currentQuizIndex];
-            
             quizQuestionText.classList.toggle('hidden', currentQuizLevel === 1);
             quizQuestionLevel1.classList.toggle('hidden', currentQuizLevel === 2);
-            
-            let correctAnswer;
-            let options = new Set();
-            
+            let correctAnswer, options = new Set();
             if (currentQuizLevel === 1) {
                 const wordLower = (questionData.word || '').toLowerCase();
                 quizQuestionIcon.textContent = questionData.icon || '📝';
                 quizQuestionWord.textContent = questionData.word;
-                
-                if (colorMap[wordLower]) {
-                    quizQuestionIcon.style.color = colorMap[wordLower];
-                    quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
-                } else {
-                    quizQuestionIcon.style.color = '';
-                    quizQuestionIcon.style.textShadow = 'none';
-                }
-
+                quizQuestionIcon.style.color = colorMap[wordLower] || '';
+                quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
                 correctAnswer = questionData.arabicMeaning;
                 options.add(correctAnswer);
                 const distractors = flashcards.filter(f => f.arabicMeaning !== correctAnswer);
                 while (options.size < 4 && distractors.length > 0) {
-                     const randomIndex = Math.floor(Math.random() * distractors.length);
-                     options.add(distractors.splice(randomIndex, 1)[0].arabicMeaning);
+                     options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].arabicMeaning);
                 }
             } else { // Level 2
                 quizQuestionText.textContent = questionData.description;
@@ -996,13 +1024,10 @@
                 options.add(correctAnswer);
                 const distractors = flashcards.filter(f => f.word !== correctAnswer);
                 while (options.size < 4 && distractors.length > 0) {
-                     const randomIndex = Math.floor(Math.random() * distractors.length);
-                     options.add(distractors.splice(randomIndex, 1)[0].word);
+                     options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].word);
                 }
             }
-            
             const shuffledOptions = Array.from(options).sort(() => 0.5 - Math.random());
-            
             quizOptions.innerHTML = '';
             shuffledOptions.forEach(option => {
                 const button = document.createElement('button');
@@ -1020,7 +1045,6 @@
                 button.disabled = true;
                 if (button.textContent === correctAnswer) button.classList.add('correct');
             });
-
             if (selectedOption === correctAnswer) {
                 score++;
                 showNotification("Correct!", false, 1500);
@@ -1030,7 +1054,6 @@
                 });
                 showNotification("Incorrect!", true, 1500);
             }
-            
             currentQuizIndex++;
             setTimeout(displayQuizQuestion, 2000);
         }
@@ -1045,61 +1068,29 @@
 
         // --- Autoplay Functions ---
         function toggleAutoplay() {
-            if (isAutoplaying) {
-                stopAutoplay();
-            } else {
-                startAutoplay();
-            }
+            isAutoplaying ? stopAutoplay() : startAutoplay();
         }
 
         async function playCardSequence() {
             if (!isAutoplaying) return;
-            
             const cardData = flashcards[currentCardIndex];
-
-            // 1. Pronounce English Word
-            if (pronounceWordCheck.checked && cardData.word) {
-                await pronounceAndDelay(cardData.word, 'en-US');
-            }
-            
+            if (pronounceWordCheck.checked && cardData.word) await pronounceAndDelay(cardData.word, 'en-US');
             if (!isAutoplaying) return;
-            
-            // 2. Flip Card
             card.classList.add('flipped');
-            await new Promise(resolve => setTimeout(resolve, 800)); // Wait for flip animation
-            
+            await new Promise(r => setTimeout(r, 800));
             if (!isAutoplaying) return;
-
-            // 3. Pronounce Arabic
-            if (pronounceArabicCheck.checked && cardData.arabicMeaning) {
-                await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
-            }
-            
+            if (pronounceArabicCheck.checked && cardData.arabicMeaning) await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
             if (!isAutoplaying) return;
-
-            // 4. Pronounce Description
-            if (pronounceDescriptionCheck.checked && cardData.description) {
-                await pronounceAndDelay(cardData.description, 'en-US');
-            }
+            if (pronounceDescriptionCheck.checked && cardData.description) await pronounceAndDelay(cardData.description, 'en-US');
         }
 
         async function autoplayLoop() {
             if (!isAutoplaying) return;
-
-            // Run the whole speak/flip sequence for the current card
             await playCardSequence();
-
-            // After everything is done, wait a moment before moving on
             if (!isAutoplaying) return;
-            await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s pause between cards
-
-            // Check again in case "stop" was pressed during the pause
+            await new Promise(r => setTimeout(r, 1500));
             if (!isAutoplaying) return;
-
-            // Advance to the next card
             showNextCard();
-
-            // Schedule the next iteration of the loop after a short delay
             if (isAutoplaying) {
                autoplayTimeout = setTimeout(autoplayLoop, 800);
             }
@@ -1110,12 +1101,8 @@
             isAutoplaying = true;
             autoplayBtn.innerHTML = '⏹️ Stop';
             autoplayBtn.style.backgroundColor = 'var(--red-btn)';
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            shuffleBtn.disabled = true;
+            [prevBtn, nextBtn, shuffleBtn].forEach(b => b.disabled = true);
             wordList.style.pointerEvents = 'none';
-
-            // Kick off the recursive autoplay loop
             autoplayLoop();
         }
 
@@ -1127,10 +1114,97 @@
             window.speechSynthesis.cancel();
             autoplayBtn.innerHTML = '▶️ Autoplay';
             autoplayBtn.style.backgroundColor = 'var(--accent)';
-            prevBtn.disabled = false;
-            nextBtn.disabled = false;
-            shuffleBtn.disabled = false;
+            [prevBtn, nextBtn, shuffleBtn].forEach(b => b.disabled = false);
             wordList.style.pointerEvents = 'auto';
+        }
+
+        // --- Game Functions ---
+        function startMatchingGame() {
+            gameMenuView.classList.add('hidden');
+            matchingGameContainer.classList.remove('hidden');
+            matchScore = 0;
+            updateMatchScore();
+
+            const GAME_SIZE = 8;
+            if (flashcards.length < GAME_SIZE) {
+                showNotification(`You need at least ${GAME_SIZE} cards to play.`, true);
+                switchMode('memorize');
+                return;
+            }
+
+            const gameCards = [...flashcards].sort(() => 0.5 - Math.random()).slice(0, GAME_SIZE);
+            pairsToMatch = gameCards.length;
+
+            const words = gameCards.map(c => ({ text: c.word, matchId: c.word }));
+            const meanings = gameCards.map(c => ({ text: c.arabicMeaning, matchId: c.word }));
+
+            renderMatchColumn(matchWordsColumn, words.sort(() => 0.5 - Math.random()), 'word');
+            renderMatchColumn(matchMeaningsColumn, meanings.sort(() => 0.5 - Math.random()), 'meaning');
+        }
+
+        function renderMatchColumn(columnEl, items, type) {
+            columnEl.innerHTML = '';
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'match-item';
+                itemEl.textContent = item.text;
+                itemEl.dataset.matchId = item.matchId;
+                itemEl.dataset.type = type;
+                if (type === 'meaning') itemEl.style.direction = 'rtl';
+                itemEl.addEventListener('click', handleMatchItemClick);
+                columnEl.appendChild(itemEl);
+            });
+        }
+
+        function handleMatchItemClick(e) {
+            const clickedItem = e.target;
+            if (clickedItem.classList.contains('correct')) return;
+            const type = clickedItem.dataset.type;
+
+            if (type === 'word') {
+                if (selectedWordEl) selectedWordEl.classList.remove('selected');
+                selectedWordEl = clickedItem;
+                selectedWordEl.classList.add('selected');
+            } else { // meaning
+                if (selectedMeaningEl) selectedMeaningEl.classList.remove('selected');
+                selectedMeaningEl = clickedItem;
+                selectedMeaningEl.classList.add('selected');
+            }
+
+            if (selectedWordEl && selectedMeaningEl) {
+                document.getElementById('matchBoard').style.pointerEvents = 'none'; // Prevent extra clicks
+                if (selectedWordEl.dataset.matchId === selectedMeaningEl.dataset.matchId) {
+                    // Correct match
+                    selectedWordEl.classList.add('correct');
+                    selectedMeaningEl.classList.add('correct');
+                    selectedWordEl = null;
+                    selectedMeaningEl = null;
+                    matchScore++;
+                    updateMatchScore();
+                    showNotification('Match found!', false, 1000);
+                    if (matchScore === pairsToMatch) {
+                        setTimeout(() => {
+                           showNotification('🎉 Congratulations! You found all matches!', false, 5000)
+                        }, 1200);
+                    }
+                    document.getElementById('matchBoard').style.pointerEvents = 'auto';
+                } else {
+                    // Incorrect match
+                    selectedWordEl.classList.add('incorrect');
+                    selectedMeaningEl.classList.add('incorrect');
+                    setTimeout(() => {
+                        selectedWordEl.classList.remove('incorrect', 'selected');
+                        selectedMeaningEl.classList.remove('incorrect', 'selected');
+                        selectedWordEl = null;
+                        selectedMeaningEl = null;
+                        document.getElementById('matchBoard').style.pointerEvents = 'auto';
+                    }, 800);
+                }
+            }
+        }
+        
+        function updateMatchScore() {
+            matchScoreEl.textContent = `Score: ${matchScore}`;
         }
 
     </script>
