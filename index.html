@@ -349,10 +349,10 @@
             margin: 10px auto;
             font-size: 1.2rem;
         }
-        #matchingGameContainer {
+        #matchingGameContainer, #hangmanGameContainer, #wordScrambleGameContainer {
             min-height: 400px;
         }
-        #matchingGameHeader {
+        .game-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -408,6 +408,97 @@
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+
+        /* Hangman Styles */
+        #hangmanDrawing {
+            width: 150px;
+            height: 180px;
+            margin: 0 auto 15px;
+        }
+        #hangmanDrawing .hg-part {
+            stroke: var(--dark);
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #hangmanDrawing .hg-part.draw {
+            opacity: 1;
+        }
+        #hangmanWord {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .letter-box {
+            width: 40px;
+            height: 40px;
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        #hangmanKeyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .key {
+            padding: 10px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        .key:disabled {
+            cursor: not-allowed;
+        }
+        .key.correct {
+            background-color: var(--success);
+            color: white;
+        }
+        .key.incorrect {
+            background-color: var(--red-btn);
+            color: white;
+            opacity: 0.6;
+        }
+
+        /* Word Scramble Styles */
+        #wordScrambleGameContainer { text-align: center; }
+        #scrambledWord {
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: var(--primary);
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+        }
+        #scrambleGuessInput {
+            width: 80%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin: 15px auto;
+            text-align: center;
+        }
+        #scrambleControls .btn {
+            margin: 0 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -463,11 +554,11 @@
                          <div id="gameMenuView" class="game-menu">
                              <h2>Vocabulary Games</h2>
                              <button id="startMatchingGameBtn" class="btn green">Matching Game</button>
-                             <button class="btn" style="background-color: var(--warning);" disabled>Hangman (soon)</button>
-                             <button class="btn" style="background-color: var(--accent);" disabled>Word Scramble (soon)</button>
+                             <button id="startHangmanGameBtn" class="btn" style="background-color: var(--warning);">Hangman</button>
+                             <button id="startWordScrambleGameBtn" class="btn" style="background-color: var(--accent);">Word Scramble</button>
                          </div>
                          <div id="matchingGameContainer" class="hidden">
-                             <div id="matchingGameHeader">
+                             <div id="matchingGameHeader" class="game-header">
                                  <span id="matchScore">Score: 0</span>
                                  <button id="restartMatchingGameBtn" class="btn red">🔄 New Game</button>
                              </div>
@@ -475,6 +566,40 @@
                                  <div class="matching-column" id="matchWordsColumn"></div>
                                  <div class="matching-column" id="matchMeaningsColumn"></div>
                              </div>
+                         </div>
+                         <div id="hangmanGameContainer" class="hidden">
+                            <div class="game-header">
+                                <span id="hangmanLives">Lives: 6</span>
+                                <button id="restartHangmanGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                            <svg id="hangmanDrawing">
+                                <!-- Stand -->
+                                <line class="hg-part" x1="20" y1="170" x2="100" y2="170" /> 
+                                <line class="hg-part" x1="60" y1="170" x2="60" y2="20" />
+                                <line class="hg-part" x1="60" y1="20" x2="140" y2="20" />
+                                <line class="hg-part" x1="140" y1="20" x2="140" y2="50" />
+                                <!-- Body Parts -->
+                                <circle id="hg-head" class="hg-part" cx="140" cy="70" r="20" />
+                                <line id="hg-body" class="hg-part" x1="140" y1="90" x2="140" y2="130" />
+                                <line id="hg-arm1" class="hg-part" x1="140" y1="100" x2="110" y2="120" />
+                                <line id="hg-arm2" class="hg-part" x1="140" y1="100" x2="170" y2="120" />
+                                <line id="hg-leg1" class="hg-part" x1="140" y1="130" x2="110" y2="150" />
+                                <line id="hg-leg2" class="hg-part" x1="140" y1="130" x2="170" y2="150" />
+                            </svg>
+                            <div id="hangmanWord"></div>
+                            <div id="hangmanKeyboard"></div>
+                         </div>
+                         <div id="wordScrambleGameContainer" class="hidden">
+                            <div class="game-header">
+                                <span id="scrambleScore">Score: 0</span>
+                                <button id="restartWordScrambleGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                            <div id="scrambledWord"></div>
+                            <input type="text" id="scrambleGuessInput" placeholder="Type your guess...">
+                            <div id="scrambleControls">
+                                <button id="submitScrambleBtn" class="btn green">Submit</button>
+                                <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                            </div>
                          </div>
                      </div>
 
@@ -595,12 +720,31 @@
         // Game Elements
         const gamesSection = document.getElementById('gamesSection');
         const gameMenuView = document.getElementById('gameMenuView');
+        // Matching Game
         const startMatchingGameBtn = document.getElementById('startMatchingGameBtn');
         const matchingGameContainer = document.getElementById('matchingGameContainer');
         const restartMatchingGameBtn = document.getElementById('restartMatchingGameBtn');
         const matchScoreEl = document.getElementById('matchScore');
         const matchWordsColumn = document.getElementById('matchWordsColumn');
         const matchMeaningsColumn = document.getElementById('matchMeaningsColumn');
+        // Hangman Game
+        const startHangmanGameBtn = document.getElementById('startHangmanGameBtn');
+        const hangmanGameContainer = document.getElementById('hangmanGameContainer');
+        const restartHangmanGameBtn = document.getElementById('restartHangmanGameBtn');
+        const hangmanLivesEl = document.getElementById('hangmanLives');
+        const hangmanDrawing = document.getElementById('hangmanDrawing');
+        const hangmanWordEl = document.getElementById('hangmanWord');
+        const hangmanKeyboard = document.getElementById('hangmanKeyboard');
+        // Word Scramble Game
+        const startWordScrambleGameBtn = document.getElementById('startWordScrambleGameBtn');
+        const wordScrambleGameContainer = document.getElementById('wordScrambleGameContainer');
+        const restartWordScrambleGameBtn = document.getElementById('restartWordScrambleGameBtn');
+        const scrambleScoreEl = document.getElementById('scrambleScore');
+        const scrambledWordEl = document.getElementById('scrambledWord');
+        const scrambleGuessInput = document.getElementById('scrambleGuessInput');
+        const scrambleControls = document.getElementById('scrambleControls');
+        const submitScrambleBtn = document.getElementById('submitScrambleBtn');
+        const skipScrambleBtn = document.getElementById('skipScrambleBtn');
 
         // --- App State ---
         let flashcards = [];
@@ -615,11 +759,20 @@
         let quizQuestions = [];
         let currentQuizIndex = 0;
         let score = 0;
-        // Game State
+        // Matching Game State
         let selectedWordEl = null;
         let selectedMeaningEl = null;
         let matchScore = 0;
         let pairsToMatch = 0;
+        // Hangman State
+        let hangmanWordToGuess = '';
+        let hangmanGuessedLetters = [];
+        let hangmanWrongGuesses = 0;
+        const HANGMAN_MAX_WRONG = 6;
+        // Word Scramble State
+        let scrambleWordToGuess = null;
+        let scrambleScore = 0;
+
 
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
@@ -637,12 +790,8 @@
             if (isAutoplaying) return; 
             if (card.classList.contains('flipped')) {
                 const cardData = flashcards[currentCardIndex];
-                if (pronounceArabicCheck.checked && cardData.arabicMeaning) {
-                    await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
-                }
-                if (pronounceDescriptionCheck.checked && cardData.description) {
-                    await pronounceAndDelay(cardData.description, 'en-US');
-                }
+                if (pronounceArabicCheck.checked && cardData.arabicMeaning) await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
+                if (pronounceDescriptionCheck.checked && cardData.description) await pronounceAndDelay(cardData.description, 'en-US');
             } else {
                 window.speechSynthesis.cancel();
             }
@@ -653,9 +802,7 @@
         autoplayBtn.addEventListener('click', toggleAutoplay);
         pronounceBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (pronounceWordCheck.checked && wordFront.textContent) {
-                 pronounceText(wordFront.textContent, 'en-US');
-            }
+            if (pronounceWordCheck.checked && wordFront.textContent) pronounceText(wordFront.textContent, 'en-US');
         });
         memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
         searchModeBtn.addEventListener('click', () => switchMode('search'));
@@ -667,17 +814,30 @@
         restartQuizBtn.addEventListener('click', startQuiz);
         startMatchingGameBtn.addEventListener('click', startMatchingGame);
         restartMatchingGameBtn.addEventListener('click', startMatchingGame);
+        startHangmanGameBtn.addEventListener('click', startHangmanGame);
+        restartHangmanGameBtn.addEventListener('click', startHangmanGame);
+        startWordScrambleGameBtn.addEventListener('click', startWordScrambleGame);
+        restartWordScrambleGameBtn.addEventListener('click', startWordScrambleGame);
+        submitScrambleBtn.addEventListener('click', checkScrambleGuess);
+        skipScrambleBtn.addEventListener('click', () => {
+            scrambleGuessInput.disabled = true;
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
+            showNotification(`The word was: ${scrambleWordToGuess.word}`, false, 3000);
+            setTimeout(nextScrambleWord, 3000);
+        });
+        scrambleGuessInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') checkScrambleGuess();
+        });
+
 
         langBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 langBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 searchLanguage = btn.dataset.lang;
-                searchInput.placeholder = searchLanguage === 'en'
-                    ? 'Search words (use * for wildcard)...'
-                    : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.placeholder = searchLanguage === 'en' ? 'Search words (use * for wildcard)...' : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
                 searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
-                searchInput.value = ''; // Clear input on switch
+                searchInput.value = '';
                 performSearch(); 
             });
         });
@@ -730,21 +890,18 @@
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`${mode}ModeBtn`).classList.add('active');
 
-            // Hide all views
-            const views = [searchSection, levelSelectView, cardContainer, memorizeNav, wordList, quizView, memorizeView, controlsSection, gamesSection];
+            const views = [
+                searchSection, levelSelectView, cardContainer, memorizeNav, wordList, 
+                quizView, memorizeView, controlsSection, gamesSection, 
+                matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer
+            ];
             views.forEach(view => view.classList.add('hidden'));
 
             if (mode === 'memorize') {
-                controlsSection.classList.remove('hidden');
-                cardContainer.classList.remove('hidden');
-                memorizeView.classList.remove('hidden');
-                memorizeNav.classList.remove('hidden');
-                wordList.classList.remove('hidden');
+                [controlsSection, cardContainer, memorizeView, memorizeNav, wordList].forEach(v => v.classList.remove('hidden'));
                 displayCurrentCard();
             } else if (mode === 'search') {
-                searchSection.classList.remove('hidden');
-                cardContainer.classList.remove('hidden');
-                memorizeView.classList.remove('hidden');
+                [searchSection, cardContainer, memorizeView].forEach(v => v.classList.remove('hidden'));
                 searchInput.placeholder = searchLanguage === 'en' ? 'Search words (use * for wildcard)...' : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
                 searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
                 showSearchPromptCard();
@@ -753,7 +910,6 @@
             } else if (mode === 'games') {
                 gamesSection.classList.remove('hidden');
                 gameMenuView.classList.remove('hidden');
-                matchingGameContainer.classList.add('hidden');
             }
         }
 
@@ -792,11 +948,13 @@
                 if (wordIndex === -1) throw new Error("Column 'Word' not found.");
 
                 flashcards = jsonData.slice(1).map(row => ({
-                    word: row[wordIndex], icon: row[iconIndex], 
-                    description: row[descIndex], arabicMeaning: row[arabicIndex]
-                })).filter(card => card.word && card.arabicMeaning);
+                    word: (row[wordIndex] || '').toString(), 
+                    icon: row[iconIndex], 
+                    description: row[descIndex], 
+                    arabicMeaning: row[arabicIndex]
+                })).filter(card => card.word && card.arabicMeaning && /^[a-zA-Z\s'-]+$/.test(card.word)); // Filter for valid English words
 
-                if (flashcards.length < 8) throw new Error("At least 8 words with Arabic meanings are needed for the games and quiz modes.");
+                if (flashcards.length < 8) throw new Error("At least 8 valid English words with Arabic meanings are needed for games and quizzes.");
 
                 showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
                 
@@ -1119,8 +1277,9 @@
         }
 
         // --- Game Functions ---
+        // Matching Game
         function startMatchingGame() {
-            gameMenuView.classList.add('hidden');
+            [gameMenuView, hangmanGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
             matchingGameContainer.classList.remove('hidden');
             matchScore = 0;
             updateMatchScore();
@@ -1172,29 +1331,22 @@
             }
 
             if (selectedWordEl && selectedMeaningEl) {
-                document.getElementById('matchBoard').style.pointerEvents = 'none'; // Prevent extra clicks
+                document.getElementById('matchBoard').style.pointerEvents = 'none';
                 if (selectedWordEl.dataset.matchId === selectedMeaningEl.dataset.matchId) {
-                    // Correct match
-                    selectedWordEl.classList.add('correct');
-                    selectedMeaningEl.classList.add('correct');
+                    [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.add('correct'));
                     selectedWordEl = null;
                     selectedMeaningEl = null;
                     matchScore++;
                     updateMatchScore();
                     showNotification('Match found!', false, 1000);
                     if (matchScore === pairsToMatch) {
-                        setTimeout(() => {
-                           showNotification('🎉 Congratulations! You found all matches!', false, 5000)
-                        }, 1200);
+                        setTimeout(() => showNotification('🎉 Congratulations! You found all matches!', false, 5000), 1200);
                     }
                     document.getElementById('matchBoard').style.pointerEvents = 'auto';
                 } else {
-                    // Incorrect match
-                    selectedWordEl.classList.add('incorrect');
-                    selectedMeaningEl.classList.add('incorrect');
+                    [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.add('incorrect'));
                     setTimeout(() => {
-                        selectedWordEl.classList.remove('incorrect', 'selected');
-                        selectedMeaningEl.classList.remove('incorrect', 'selected');
+                        [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.remove('incorrect', 'selected'));
                         selectedWordEl = null;
                         selectedMeaningEl = null;
                         document.getElementById('matchBoard').style.pointerEvents = 'auto';
@@ -1205,6 +1357,134 @@
         
         function updateMatchScore() {
             matchScoreEl.textContent = `Score: ${matchScore}`;
+        }
+
+        // Hangman Game
+        function startHangmanGame() {
+            [gameMenuView, matchingGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
+            hangmanGameContainer.classList.remove('hidden');
+
+            hangmanWrongGuesses = 0;
+            hangmanGuessedLetters = [];
+            
+            const validHangmanWords = flashcards.filter(c => !c.word.includes(' '));
+            if (validHangmanWords.length === 0) {
+                showNotification("No single-word cards available for Hangman.", true);
+                switchMode('games');
+                return;
+            }
+            hangmanWordToGuess = validHangmanWords[Math.floor(Math.random() * validHangmanWords.length)].word.toUpperCase();
+            
+            updateHangmanLives();
+            drawHangmanWord();
+            createHangmanKeyboard();
+            document.querySelectorAll('#hangmanDrawing .hg-part').forEach((part, index) => {
+                if (index < 4) {
+                    part.classList.add('draw');
+                } else {
+                    part.classList.remove('draw');
+                }
+            });
+        }
+
+        function drawHangmanWord() {
+            hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(letter => `
+                <div class="letter-box">
+                    ${hangmanGuessedLetters.includes(letter) || !/[A-Z]/.test(letter) ? letter : ''}
+                </div>
+            `).join('');
+        }
+
+        function createHangmanKeyboard() {
+            hangmanKeyboard.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(key => 
+                `<button class="key">${key}</button>`
+            ).join('');
+            hangmanKeyboard.addEventListener('click', handleHangmanGuess);
+        }
+
+        function handleHangmanGuess(e) {
+            if (e.target.tagName !== 'BUTTON') return;
+            const letter = e.target.textContent;
+            e.target.disabled = true;
+
+            if (hangmanWordToGuess.includes(letter)) {
+                e.target.classList.add('correct');
+                hangmanGuessedLetters.push(letter);
+            } else {
+                e.target.classList.add('incorrect');
+                hangmanWrongGuesses++;
+                updateHangmanLives();
+                document.querySelectorAll('#hangmanDrawing .hg-part')[hangmanWrongGuesses + 3].classList.add('draw');
+            }
+            drawHangmanWord();
+            checkHangmanWinLoss();
+        }
+        
+        function updateHangmanLives() {
+            hangmanLivesEl.textContent = `Lives: ${HANGMAN_MAX_WRONG - hangmanWrongGuesses}`;
+        }
+
+        function checkHangmanWinLoss() {
+            const isWon = hangmanWordToGuess.split('').every(letter => hangmanGuessedLetters.includes(letter) || !/[A-Z]/.test(letter));
+            if (isWon) {
+                showNotification('🎉 You won!', false, 4000);
+                hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
+            } else if (hangmanWrongGuesses >= HANGMAN_MAX_WRONG) {
+                showNotification(`😭 You lost. The word was: ${hangmanWordToGuess}`, true, 5000);
+                hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(letter => `<div class="letter-box">${letter}</div>`).join('');
+                hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
+            }
+        }
+        
+        // Word Scramble Game
+        function startWordScrambleGame() {
+            [gameMenuView, matchingGameContainer, hangmanGameContainer].forEach(v => v.classList.add('hidden'));
+            wordScrambleGameContainer.classList.remove('hidden');
+            scrambleScore = 0;
+            updateScrambleScore();
+            nextScrambleWord();
+        }
+        
+        function nextScrambleWord() {
+            scrambleWordToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            let word = scrambleWordToGuess.word;
+            let scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
+            while (scrambled.toLowerCase() === word.toLowerCase() && word.length > 1) {
+                scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
+            }
+            scrambledWordEl.textContent = scrambled;
+            scrambleGuessInput.value = '';
+            scrambleGuessInput.disabled = false;
+            scrambleGuessInput.focus();
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }
+
+        function checkScrambleGuess() {
+            const guess = scrambleGuessInput.value.trim();
+            if (!guess) return;
+
+            const isCorrect = guess.toLowerCase() === scrambleWordToGuess.word.toLowerCase();
+            
+            scrambleGuessInput.disabled = true;
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                showNotification('✅ Correct!', false, 2000);
+                scrambleScore++;
+                updateScrambleScore();
+                setTimeout(nextScrambleWord, 2000);
+            } else {
+                showNotification(`❌ Incorrect. The word was: ${scrambleWordToGuess.word}`, true, 3000);
+                scrambleGuessInput.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    scrambleGuessInput.style.animation = '';
+                    nextScrambleWord();
+                }, 3000);
+            }
+        }
+
+        function updateScrambleScore() {
+            scrambleScoreEl.textContent = `Score: ${scrambleScore}`;
         }
 
     </script>
