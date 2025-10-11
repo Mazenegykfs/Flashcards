@@ -271,7 +271,7 @@
         .word-item:last-child { border-bottom: none; }
         .word-item:hover { background-color: rgba(76, 201, 240, 0.1); }
         .word-item.active { background-color: var(--primary); color: white; font-weight: bold; }
-        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: flex-start; gap: 10px; max-width: 350px; text-align: left; }
         .notification.error { background: var(--red-btn); }
@@ -502,7 +502,7 @@
             margin: 0 10px;
         }
         
-        /* NEW: Spelling Bee Styles */
+        /* Spelling Bee Styles */
         #spellingBeeGameContainer { 
             text-align: center; 
             display: flex;
@@ -554,12 +554,15 @@
 
         <section class="file-selector-section">
             <h2>Select a Word List</h2>
-            <div id="fileSelectorContainer">
-                <p>Loading file list from GitHub...</p>
-                <div class="spinner" style="width: 30px; height: 30px; border-width: 3px;"></div>
-            </div>
-            <select id="fileSelect" class="hidden"></select>
-            <button id="loadCardsBtn" class="btn green hidden">📚 Load Cards</button>
+            <p>Choose an Excel file from the list below.</p>
+            <div id="loadingSpinner" class="spinner hidden"></div>
+            <select id="fileSelect" style="margin-top: 15px;"></select>
+            <button id="loadFileBtn" class="btn green" style="margin-top: 10px;">Load Selected File</button>
+        </section>
+
+        <section id="unitSelectorSection" class="hidden" style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+            <h2>Select a Unit</h2>
+            <select id="unitSelect" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; border: 2px solid var(--accent); margin-top: 10px;"></select>
         </section>
 
         <div id="appContainer" class="hidden">
@@ -600,7 +603,6 @@
                              <button id="startMatchingGameBtn" class="btn green">Matching Game</button>
                              <button id="startHangmanGameBtn" class="btn" style="background-color: var(--warning);">Hangman</button>
                              <button id="startWordScrambleGameBtn" class="btn" style="background-color: var(--accent);">Word Scramble</button>
-                             <!-- NEW: Spelling Bee Button -->
                              <button id="startSpellingBeeGameBtn" class="btn" style="background-color: var(--purple);">Spelling Bee</button>
                          </div>
                          <div id="matchingGameContainer" class="hidden">
@@ -647,7 +649,6 @@
                                  <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
                              </div>
                          </div>
-                         <!-- NEW: Spelling Bee Container -->
                          <div id="spellingBeeGameContainer" class="hidden">
                             <div class="game-header">
                                 <span id="spellingBeeScore">Score: 0</span>
@@ -730,9 +731,11 @@
 
     <script>
         // --- DOM Elements ---
-        const fileSelectorContainer = document.getElementById('fileSelectorContainer');
         const fileSelect = document.getElementById('fileSelect');
-        const loadCardsBtn = document.getElementById('loadCardsBtn');
+        const loadFileBtn = document.getElementById('loadFileBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const unitSelectorSection = document.getElementById('unitSelectorSection');
+        const unitSelect = document.getElementById('unitSelect');
         const appContainer = document.getElementById('appContainer');
         const cardContainer = document.getElementById('cardContainer');
         const memorizeView = document.getElementById('memorizeView');
@@ -806,7 +809,7 @@
         const scrambleControls = document.getElementById('scrambleControls');
         const submitScrambleBtn = document.getElementById('submitScrambleBtn');
         const skipScrambleBtn = document.getElementById('skipScrambleBtn');
-        // NEW: Spelling Bee Elements
+        // Spelling Bee Elements
         const startSpellingBeeGameBtn = document.getElementById('startSpellingBeeGameBtn');
         const spellingBeeGameContainer = document.getElementById('spellingBeeGameContainer');
         const restartSpellingBeeGameBtn = document.getElementById('restartSpellingBeeGameBtn');
@@ -820,6 +823,7 @@
 
 
         // --- App State ---
+        let allFlashcards = [];
         let flashcards = [];
         let currentCardIndex = 0;
         let currentMode = 'memorize';
@@ -846,7 +850,7 @@
         // Word Scramble State
         let scrambleWordToGuess = null;
         let scrambleScore = 0;
-        // NEW: Spelling Bee State
+        // Spelling Bee State
         let spellingBeeCardToGuess = null;
         let spellingBeeScore = 0;
         let spellingBeeLives = 0;
@@ -861,8 +865,9 @@
         };
 
         // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', fetchFileListFromGitHub);
-        loadCardsBtn.addEventListener('click', loadSelectedFile);
+        document.addEventListener('DOMContentLoaded', fetchExcelFilesFromGitHub);
+        loadFileBtn.addEventListener('click', loadSelectedFile);
+        unitSelect.addEventListener('change', (e) => filterAndDisplayCards(e.target.value));
         card.addEventListener('click', async () => {
             card.classList.toggle('flipped');
             if (isAutoplaying) return; 
@@ -908,7 +913,7 @@
             if (e.key === 'Enter') checkScrambleGuess();
         });
 
-        // NEW: Spelling Bee Listeners
+        // Spelling Bee Listeners
         startSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
         restartSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
         hearWordAgainBtn.addEventListener('click', () => {
@@ -951,36 +956,106 @@
         });
 
         // --- Functions ---
-        async function fetchFileListFromGitHub() {
-            const repoUrl = 'https://api.github.com/repos/Mazenegykfs/Flashcards/contents/';
+        
+        async function fetchExcelFilesFromGitHub() {
+            const repoOwner = 'Mazenegykfs';
+            const repoName = 'Flashcards';
+            const repoPath = ''; // The path in your repo, empty for root
+            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${repoPath}`;
+
+            loadingSpinner.classList.remove('hidden');
+            fileSelect.classList.add('hidden');
+            loadFileBtn.classList.add('hidden');
+
             try {
-                const response = await fetch(repoUrl);
-                if (!response.ok) throw new Error('Could not fetch file list from GitHub.');
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+                }
                 const files = await response.json();
                 
-                const excelFiles = files
-                    .filter(file => file.name.endsWith('.xlsx'))
-                    .sort((a, b) => a.name.localeCompare(b.name));
-                
-                if (excelFiles.length === 0) throw new Error('No .xlsx files found in the GitHub repository.');
+                const excelFiles = files.filter(file => file.type === 'file' && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')));
 
-                fileSelect.innerHTML = excelFiles.map(file => `<option value="${file.name}">${file.name}</option>`).join('');
+                fileSelect.innerHTML = '';
+                if (excelFiles.length === 0) {
+                    fileSelect.innerHTML = '<option value="">No Excel files found in repository.</option>';
+                    loadFileBtn.disabled = true;
+                    return;
+                }
                 
-                fileSelectorContainer.classList.add('hidden');
+                excelFiles.forEach(file => {
+                    const option = document.createElement('option');
+                    option.value = file.download_url;
+                    option.textContent = file.name;
+                    fileSelect.appendChild(option);
+                });
+                loadFileBtn.disabled = false;
+
+            } catch (error) {
+                console.error('Error fetching files from GitHub:', error);
+                showNotification('Could not load file list from GitHub. Please check the repository path and your internet connection.', true, 6000);
+                fileSelect.innerHTML = '<option value="">Error loading files.</option>';
+                loadFileBtn.disabled = true;
+            } finally {
+                loadingSpinner.classList.add('hidden');
                 fileSelect.classList.remove('hidden');
-                loadCardsBtn.classList.remove('hidden');
-
-            } catch(error) {
-                console.error('Error fetching file list:', error);
-                fileSelectorContainer.innerHTML = `<p style="color:var(--red-btn);">${error.message}</p>`;
+                loadFileBtn.classList.remove('hidden');
             }
         }
 
-        function loadSelectedFile() {
-            const selectedFile = fileSelect.value;
-            if (!selectedFile) return;
-            const fileUrl = `https://raw.githubusercontent.com/Mazenegykfs/Flashcards/main/${selectedFile}`;
-            loadDataFromUrl(fileUrl);
+        async function loadSelectedFile() {
+            const selectedFileUrl = fileSelect.value;
+            if (!selectedFileUrl) {
+                showNotification('Please select a file to load.', true);
+                return;
+            }
+
+            loadingSpinner.classList.remove('hidden');
+            unitSelectorSection.classList.add('hidden');
+            appContainer.classList.add('hidden');
+
+            try {
+                const response = await fetch(selectedFileUrl);
+                 if (!response.ok) {
+                    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.arrayBuffer();
+                processExcelData(data);
+            } catch (error) {
+                console.error('Error loading Excel file:', error);
+                showNotification('Failed to load the selected Excel file.', true, 5000);
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        function filterAndDisplayCards(unit) {
+            stopAutoplay();
+            if (unit === 'all') {
+                flashcards = [...allFlashcards];
+            } else {
+                flashcards = allFlashcards.filter(card => card.unit === unit);
+            }
+
+            if (flashcards.length === 0) {
+                showNotification(`No cards found for ${unit}. Showing all cards instead.`, true);
+                flashcards = [...allFlashcards];
+                unitSelect.value = 'all';
+            }
+
+            quizLengthInput.max = flashcards.length;
+            quizLengthInput.value = Math.min(20, flashcards.length);
+
+            currentCardIndex = 0;
+            updateWordList();
+            displayCurrentCard();
+
+            const hasCards = flashcards.length > 0;
+            [prevBtn, nextBtn, shuffleBtn, autoplayBtn].forEach(btn => btn.disabled = !hasCards);
+
+            if (!appContainer.classList.contains('hidden')) {
+                switchMode('memorize');
+            }
         }
 
         function switchMode(mode) {
@@ -1016,25 +1091,6 @@
             }
         }
 
-        async function loadDataFromUrl(url) {
-            loadCardsBtn.disabled = true;
-            loadCardsBtn.textContent = 'Loading...';
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Network response error: ${response.statusText}`);
-                const data = await response.arrayBuffer();
-                processExcelData(data);
-                appContainer.classList.remove('hidden');
-                switchMode('memorize');
-            } catch (error) {
-                console.error('Error fetching/processing Excel file:', error);
-                showNotification(`Failed to load ${fileSelect.value}.`, true);
-            } finally {
-                loadCardsBtn.disabled = false;
-                loadCardsBtn.textContent = '📚 Load Cards';
-            }
-        }
-
         function processExcelData(data) {
              try {
                 const workbook = XLSX.read(data, { type: 'array' });
@@ -1043,36 +1099,54 @@
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 const headers = jsonData[0].map(h => String(h).toLowerCase().trim());
+                const unitIndex = headers.indexOf('unit');
                 const wordIndex = headers.indexOf('word');
                 const iconIndex = headers.indexOf('icon');
                 const descIndex = headers.indexOf('description');
                 const arabicIndex = headers.indexOf('arabic meaning');
                 
-                if (wordIndex === -1) throw new Error("Column 'Word' not found.");
+                if (wordIndex === -1) throw new Error("Column 'Word' not found in your Excel file.");
+                if (unitIndex === -1) throw new Error("A 'Unit' column is required in your Excel file.");
 
-                flashcards = jsonData.slice(1).map(row => ({
+                allFlashcards = jsonData.slice(1).map(row => ({
+                    unit: (row[unitIndex] || '').toString(),
                     word: (row[wordIndex] || '').toString(), 
                     icon: row[iconIndex], 
                     description: row[descIndex], 
                     arabicMeaning: row[arabicIndex]
-                })).filter(card => card.word && card.arabicMeaning && /^[a-zA-Z\s'-]+$/.test(card.word)); // Filter for valid English words
+                })).filter(card => card.unit && card.word && card.arabicMeaning && /^[a-zA-Z\s'-]+$/.test(card.word));
 
-                if (flashcards.length < 8) throw new Error("At least 8 valid English words with Arabic meanings are needed for games and quizzes.");
+                if (allFlashcards.length < 8) {
+                    appContainer.classList.add('hidden'); 
+                    unitSelectorSection.classList.add('hidden');
+                    throw new Error("At least 8 valid English words with Arabic meanings and Unit names are needed.");
+                }
 
-                showNotification(`✅ Loaded ${flashcards.length} cards successfully!`);
+                showNotification(`✅ Loaded ${allFlashcards.length} cards successfully!`);
                 
-                quizLengthInput.max = flashcards.length;
-                quizLengthInput.value = Math.min(20, flashcards.length);
+                populateUnitSelector();
+                unitSelectorSection.classList.remove('hidden');
+                
+                filterAndDisplayCards('all'); 
+                
+                appContainer.classList.remove('hidden');
+                switchMode('memorize');
 
-                currentCardIndex = 0;
-                displayCurrentCard();
-                updateWordList();
-                prevBtn.disabled = false;
-                nextBtn.disabled = false;
              } catch (error) {
                 console.error('Error parsing Excel data:', error);
                 showNotification(error.message, true, 5000);
              }
+        }
+
+        function populateUnitSelector() {
+            const units = ['all', ...new Set(allFlashcards.map(card => card.unit))];
+            unitSelect.innerHTML = '';
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit === 'all' ? 'All Units' : unit;
+                unitSelect.appendChild(option);
+            });
         }
 
         function pronounceText(text, lang) {
@@ -1103,7 +1177,16 @@
         }
 
         function displayCurrentCard() {
-            if (flashcards.length === 0) return;
+            if (flashcards.length === 0) {
+                // Handle no cards state gracefully
+                wordFront.textContent = 'No Cards';
+                cardIcon.textContent = '🤷‍♂️';
+                description.textContent = 'No cards available for the selected unit.';
+                arabicMeaning.textContent = 'لا توجد بطاقات';
+                progress.textContent = `0 / 0`;
+                 if(card.classList.contains('flipped')) card.classList.remove('flipped');
+                return;
+            };
             const cardData = flashcards[currentCardIndex];
             const wordLower = (cardData.word || '').toLowerCase();
             
@@ -1161,6 +1244,8 @@
 
         function updateWordList() {
             wordList.innerHTML = '';
+            if(flashcards.length === 0) return;
+
             flashcards.forEach((cardData) => {
                 const item = document.createElement('div');
                 item.className = 'word-item';
@@ -1239,6 +1324,11 @@
             let desiredLength = parseInt(quizLengthInput.value);
             if (isNaN(desiredLength) || desiredLength < 4) { desiredLength = 4; }
             if (desiredLength > flashcards.length) { desiredLength = flashcards.length; }
+             if (flashcards.length < 4) {
+                showNotification("You need at least 4 cards in this unit to start a quiz.", true);
+                switchMode('memorize'); // Go back to a safe mode
+                return;
+            }
             const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
             quizQuestions = shuffled.slice(0, desiredLength);
             displayQuizQuestion();
@@ -1275,7 +1365,7 @@
                 quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
                 correctAnswer = questionData.arabicMeaning;
                 options.add(correctAnswer);
-                const distractors = flashcards.filter(f => f.arabicMeaning !== correctAnswer);
+                const distractors = allFlashcards.filter(f => f.arabicMeaning !== correctAnswer);
                 while (options.size < 4 && distractors.length > 0) {
                      options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].arabicMeaning);
                 }
@@ -1283,7 +1373,7 @@
                 quizQuestionText.textContent = questionData.description;
                 correctAnswer = questionData.word;
                 options.add(correctAnswer);
-                const distractors = flashcards.filter(f => f.word !== correctAnswer);
+                const distractors = allFlashcards.filter(f => f.word !== correctAnswer);
                 while (options.size < 4 && distractors.length > 0) {
                      options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].word);
                 }
@@ -1389,7 +1479,6 @@
         }
 
         // --- Game Functions ---
-        // Matching Game
         function startMatchingGame() {
             [gameMenuView, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             matchingGameContainer.classList.remove('hidden');
@@ -1398,7 +1487,7 @@
 
             const GAME_SIZE = 8;
             if (flashcards.length < GAME_SIZE) {
-                showNotification(`You need at least ${GAME_SIZE} cards to play.`, true);
+                showNotification(`You need at least ${GAME_SIZE} cards in this unit to play.`, true);
                 switchMode('memorize');
                 return;
             }
@@ -1471,7 +1560,6 @@
             matchScoreEl.textContent = `Score: ${matchScore}`;
         }
 
-        // Hangman Game
         function startHangmanGame() {
             [gameMenuView, matchingGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             hangmanGameContainer.classList.remove('hidden');
@@ -1481,7 +1569,7 @@
             
             const validHangmanWords = flashcards.filter(c => !c.word.includes(' '));
             if (validHangmanWords.length === 0) {
-                showNotification("No single-word cards available for Hangman.", true);
+                showNotification("No single-word cards available in this unit for Hangman.", true);
                 switchMode('games');
                 return;
             }
@@ -1551,7 +1639,6 @@
             }
         }
         
-        // Word Scramble Game
         function startWordScrambleGame() {
             [gameMenuView, matchingGameContainer, hangmanGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             wordScrambleGameContainer.classList.remove('hidden');
@@ -1561,6 +1648,11 @@
         }
         
         function nextScrambleWord() {
+             if (flashcards.length === 0) {
+                showNotification("No cards in this unit to play Word Scramble.", true);
+                switchMode('games');
+                return;
+            }
             scrambleWordToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
             let word = scrambleWordToGuess.word;
             let scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
@@ -1604,7 +1696,6 @@
             scrambleScoreEl.textContent = `Score: ${scrambleScore}`;
         }
         
-        // NEW: Spelling Bee Functions
         function startSpellingBeeGame() {
             [gameMenuView, matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
             spellingBeeGameContainer.classList.remove('hidden');
@@ -1615,6 +1706,11 @@
         }
 
         function nextSpellingBeeWord() {
+            if (flashcards.length === 0) {
+                showNotification("No cards in this unit to play Spelling Bee.", true);
+                switchMode('games');
+                return;
+            }
             spellingBeeCardToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
             spellingBeeHint.textContent = `Hint: ${spellingBeeCardToGuess.arabicMeaning}`;
             spellingGuessInput.value = '';
@@ -1622,7 +1718,6 @@
             spellingGuessInput.focus();
             [submitSpellingBtn, skipSpellingBtn].forEach(b => b.disabled = false);
 
-            // Announce the word after a short delay
             setTimeout(() => {
                  pronounceText(spellingBeeCardToGuess.word, 'en-US');
             }, 500);
@@ -1674,3 +1769,4 @@
     </script>
 </body>
 </html>
+
