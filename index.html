@@ -14,6 +14,7 @@
             --dark: #212529;
             --success: #2ec4b6;
             --warning: #ff9f1c;
+            --purple: #7b2cbf;
             --bg-color: #e0f7fa; /* Light Blue Background */
             --green-btn: #4CAF50; /* Green Button */
             --red-btn: #f44336;   /* Red Button */
@@ -80,6 +81,7 @@
             display: flex;
             gap: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
         }
         .mode-btn, .level-btn {
             flex: 1;
@@ -88,7 +90,7 @@
             border: none;
             background-color: transparent;
             color: var(--header-bg);
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -96,6 +98,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            min-width: 120px; /* Ensure buttons don't get too small */
         }
         .mode-btn.active {
             background-color: var(--header-bg);
@@ -349,7 +352,7 @@
             margin: 10px auto;
             font-size: 1.2rem;
         }
-        #matchingGameContainer, #hangmanGameContainer, #wordScrambleGameContainer {
+        #matchingGameContainer, #hangmanGameContainer, #wordScrambleGameContainer, #spellingBeeGameContainer {
             min-height: 400px;
         }
         .game-header {
@@ -498,6 +501,47 @@
         #scrambleControls .btn {
             margin: 0 10px;
         }
+        
+        /* NEW: Spelling Bee Styles */
+        #spellingBeeGameContainer { 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #hearWordAgainBtn {
+            font-size: 4rem;
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+        }
+        #hearWordAgainBtn:hover {
+            transform: scale(1.1);
+        }
+        #spellingBeeHint {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            direction: rtl;
+        }
+        #spellingGuessInput {
+            width: 90%;
+            max-width: 450px;
+            padding: 15px;
+            font-size: 1.8rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin: 15px auto;
+            text-align: center;
+            text-transform: lowercase;
+        }
 
     </style>
 </head>
@@ -531,9 +575,9 @@
                      <!-- Search Section -->
                      <div id="searchSection" class="hidden">
                          <div class="lang-selector" style="margin-bottom: 15px; text-align: center;">
-                            <button class="lang-btn active" data-lang="en">Search English</button>
-                            <button class="lang-btn" data-lang="ar">Search Arabic</button>
-                        </div>
+                             <button class="lang-btn active" data-lang="en">Search English</button>
+                             <button class="lang-btn" data-lang="ar">Search Arabic</button>
+                         </div>
                          <input type="text" id="searchInput" placeholder="Search words (use * for wildcard)...">
                          <div id="searchResults" class="word-list" style="margin-top: 0; margin-bottom: 20px; max-height: 250px;"></div>
                      </div>
@@ -556,6 +600,8 @@
                              <button id="startMatchingGameBtn" class="btn green">Matching Game</button>
                              <button id="startHangmanGameBtn" class="btn" style="background-color: var(--warning);">Hangman</button>
                              <button id="startWordScrambleGameBtn" class="btn" style="background-color: var(--accent);">Word Scramble</button>
+                             <!-- NEW: Spelling Bee Button -->
+                             <button id="startSpellingBeeGameBtn" class="btn" style="background-color: var(--purple);">Spelling Bee</button>
                          </div>
                          <div id="matchingGameContainer" class="hidden">
                              <div id="matchingGameHeader" class="game-header">
@@ -568,52 +614,67 @@
                              </div>
                          </div>
                          <div id="hangmanGameContainer" class="hidden">
-                            <div class="game-header">
+                           <div class="game-header">
                                 <span id="hangmanLives">Lives: 6</span>
                                 <button id="restartHangmanGameBtn" class="btn red">🔄 New Game</button>
                             </div>
-                            <svg id="hangmanDrawing">
-                                <!-- Stand -->
-                                <line class="hg-part" x1="20" y1="170" x2="100" y2="170" /> 
-                                <line class="hg-part" x1="60" y1="170" x2="60" y2="20" />
-                                <line class="hg-part" x1="60" y1="20" x2="140" y2="20" />
-                                <line class="hg-part" x1="140" y1="20" x2="140" y2="50" />
-                                <!-- Body Parts -->
-                                <circle id="hg-head" class="hg-part" cx="140" cy="70" r="20" />
-                                <line id="hg-body" class="hg-part" x1="140" y1="90" x2="140" y2="130" />
-                                <line id="hg-arm1" class="hg-part" x1="140" y1="100" x2="110" y2="120" />
-                                <line id="hg-arm2" class="hg-part" x1="140" y1="100" x2="170" y2="120" />
-                                <line id="hg-leg1" class="hg-part" x1="140" y1="130" x2="110" y2="150" />
-                                <line id="hg-leg2" class="hg-part" x1="140" y1="130" x2="170" y2="150" />
-                            </svg>
-                            <div id="hangmanWord"></div>
-                            <div id="hangmanKeyboard"></div>
+                           <svg id="hangmanDrawing">
+                               <!-- Stand -->
+                               <line class="hg-part" x1="20" y1="170" x2="100" y2="170" /> 
+                               <line class="hg-part" x1="60" y1="170" x2="60" y2="20" />
+                               <line class="hg-part" x1="60" y1="20" x2="140" y2="20" />
+                               <line class="hg-part" x1="140" y1="20" x2="140" y2="50" />
+                               <!-- Body Parts -->
+                               <circle id="hg-head" class="hg-part" cx="140" cy="70" r="20" />
+                               <line id="hg-body" class="hg-part" x1="140" y1="90" x2="140" y2="130" />
+                               <line id="hg-arm1" class="hg-part" x1="140" y1="100" x2="110" y2="120" />
+                               <line id="hg-arm2" class="hg-part" x1="140" y1="100" x2="170" y2="120" />
+                               <line id="hg-leg1" class="hg-part" x1="140" y1="130" x2="110" y2="150" />
+                               <line id="hg-leg2" class="hg-part" x1="140" y1="130" x2="170" y2="150" />
+                           </svg>
+                           <div id="hangmanWord"></div>
+                           <div id="hangmanKeyboard"></div>
                          </div>
                          <div id="wordScrambleGameContainer" class="hidden">
+                             <div class="game-header">
+                                 <span id="scrambleScore">Score: 0</span>
+                                 <button id="restartWordScrambleGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="scrambledWord"></div>
+                             <input type="text" id="scrambleGuessInput" placeholder="Type your guess...">
+                             <div id="scrambleControls">
+                                 <button id="submitScrambleBtn" class="btn green">Submit</button>
+                                 <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                             </div>
+                         </div>
+                         <!-- NEW: Spelling Bee Container -->
+                         <div id="spellingBeeGameContainer" class="hidden">
                             <div class="game-header">
-                                <span id="scrambleScore">Score: 0</span>
-                                <button id="restartWordScrambleGameBtn" class="btn red">🔄 New Game</button>
+                                <span id="spellingBeeScore">Score: 0</span>
+                                <span id="spellingBeeLives">Lives: 5 ❤️</span>
+                                <button id="restartSpellingBeeGameBtn" class="btn red">🔄 New Game</button>
                             </div>
-                            <div id="scrambledWord"></div>
-                            <input type="text" id="scrambleGuessInput" placeholder="Type your guess...">
-                            <div id="scrambleControls">
-                                <button id="submitScrambleBtn" class="btn green">Submit</button>
-                                <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                            <button id="hearWordAgainBtn" title="Hear word again">🔊</button>
+                            <div id="spellingBeeHint">Hint will appear here</div>
+                            <input type="text" id="spellingGuessInput" placeholder="Type what you hear...">
+                            <div id="spellingBeeControls">
+                                <button id="submitSpellingBtn" class="btn green">Submit</button>
+                                <button id="skipSpellingBtn" class="btn" style="background-color: var(--warning);">Skip</button>
                             </div>
                          </div>
                      </div>
 
                      <div id="controlsSection" class="controls-section hidden">
                          <div class="control-group">
-                            <label for="speedControl"><strong>Voice Speed:</strong></label>
-                            <input type="range" id="speedControl" min="0.5" max="2" value="1" step="0.1">
-                            <span id="speedValue">1.0x</span>
+                             <label for="speedControl"><strong>Voice Speed:</strong></label>
+                             <input type="range" id="speedControl" min="0.5" max="2" value="1" step="0.1">
+                             <span id="speedValue">1.0x</span>
                          </div>
                          <div class="control-group checkbox-group">
-                            <strong>Pronounce:</strong>
-                            <label><input type="checkbox" id="pronounceWordCheck" checked> Word</label>
-                            <label><input type="checkbox" id="pronounceArabicCheck"> Arabic</label>
-                            <label><input type="checkbox" id="pronounceDescriptionCheck"> Description</label>
+                             <strong>Pronounce:</strong>
+                             <label><input type="checkbox" id="pronounceWordCheck" checked> Word</label>
+                             <label><input type="checkbox" id="pronounceArabicCheck"> Arabic</label>
+                             <label><input type="checkbox" id="pronounceDescriptionCheck"> Description</label>
                          </div>
                      </div>
 
@@ -745,6 +806,18 @@
         const scrambleControls = document.getElementById('scrambleControls');
         const submitScrambleBtn = document.getElementById('submitScrambleBtn');
         const skipScrambleBtn = document.getElementById('skipScrambleBtn');
+        // NEW: Spelling Bee Elements
+        const startSpellingBeeGameBtn = document.getElementById('startSpellingBeeGameBtn');
+        const spellingBeeGameContainer = document.getElementById('spellingBeeGameContainer');
+        const restartSpellingBeeGameBtn = document.getElementById('restartSpellingBeeGameBtn');
+        const spellingBeeScoreEl = document.getElementById('spellingBeeScore');
+        const spellingBeeLivesEl = document.getElementById('spellingBeeLives');
+        const hearWordAgainBtn = document.getElementById('hearWordAgainBtn');
+        const spellingBeeHint = document.getElementById('spellingBeeHint');
+        const spellingGuessInput = document.getElementById('spellingGuessInput');
+        const submitSpellingBtn = document.getElementById('submitSpellingBtn');
+        const skipSpellingBtn = document.getElementById('skipSpellingBtn');
+
 
         // --- App State ---
         let flashcards = [];
@@ -773,7 +846,11 @@
         // Word Scramble State
         let scrambleWordToGuess = null;
         let scrambleScore = 0;
-
+        // NEW: Spelling Bee State
+        let spellingBeeCardToGuess = null;
+        let spellingBeeScore = 0;
+        let spellingBeeLives = 0;
+        const SPELLING_BEE_MAX_LIVES = 5;
 
         const colorMap = {
             'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
@@ -829,6 +906,30 @@
         });
         scrambleGuessInput.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') checkScrambleGuess();
+        });
+
+        // NEW: Spelling Bee Listeners
+        startSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
+        restartSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
+        hearWordAgainBtn.addEventListener('click', () => {
+            if(spellingBeeCardToGuess) pronounceText(spellingBeeCardToGuess.word, 'en-US');
+        });
+        submitSpellingBtn.addEventListener('click', checkSpellingGuess);
+        spellingGuessInput.addEventListener('keyup', e => {
+            if (e.key === 'Enter') checkSpellingGuess();
+        });
+        skipSpellingBtn.addEventListener('click', () => {
+            if(spellingBeeLives > 0) {
+                 spellingBeeLives--;
+                 updateSpellingBeeStats();
+                 const details = createWordDetailHTML(spellingBeeCardToGuess);
+                 showNotification(`The word was: ${spellingBeeCardToGuess.word}${details}`, true, 5000);
+                 if (spellingBeeLives > 0) {
+                     setTimeout(nextSpellingBeeWord, 5000);
+                 } else {
+                     endSpellingBeeGame(false);
+                 }
+            }
         });
 
 
@@ -895,7 +996,7 @@
             const views = [
                 searchSection, levelSelectView, cardContainer, memorizeNav, wordList, 
                 quizView, memorizeView, controlsSection, gamesSection, 
-                matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer
+                matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer
             ];
             views.forEach(view => view.classList.add('hidden'));
 
@@ -968,10 +1069,10 @@
                 updateWordList();
                 prevBtn.disabled = false;
                 nextBtn.disabled = false;
-            } catch (error) {
+             } catch (error) {
                 console.error('Error parsing Excel data:', error);
                 showNotification(error.message, true, 5000);
-            }
+             }
         }
 
         function pronounceText(text, lang) {
@@ -1210,7 +1311,7 @@
                 showNotification("Correct!", false, 1500);
             } else {
                 buttons.forEach(button => {
-                   if (button.textContent === selectedOption) button.classList.add('incorrect');
+                  if (button.textContent === selectedOption) button.classList.add('incorrect');
                 });
                 showNotification("Incorrect!", true, 1500);
             }
@@ -1290,7 +1391,7 @@
         // --- Game Functions ---
         // Matching Game
         function startMatchingGame() {
-            [gameMenuView, hangmanGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
+            [gameMenuView, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             matchingGameContainer.classList.remove('hidden');
             matchScore = 0;
             updateMatchScore();
@@ -1372,7 +1473,7 @@
 
         // Hangman Game
         function startHangmanGame() {
-            [gameMenuView, matchingGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
+            [gameMenuView, matchingGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             hangmanGameContainer.classList.remove('hidden');
 
             hangmanWrongGuesses = 0;
@@ -1452,7 +1553,7 @@
         
         // Word Scramble Game
         function startWordScrambleGame() {
-            [gameMenuView, matchingGameContainer, hangmanGameContainer].forEach(v => v.classList.add('hidden'));
+            [gameMenuView, matchingGameContainer, hangmanGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
             wordScrambleGameContainer.classList.remove('hidden');
             scrambleScore = 0;
             updateScrambleScore();
@@ -1502,9 +1603,74 @@
         function updateScrambleScore() {
             scrambleScoreEl.textContent = `Score: ${scrambleScore}`;
         }
+        
+        // NEW: Spelling Bee Functions
+        function startSpellingBeeGame() {
+            [gameMenuView, matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
+            spellingBeeGameContainer.classList.remove('hidden');
+            spellingBeeScore = 0;
+            spellingBeeLives = SPELLING_BEE_MAX_LIVES;
+            updateSpellingBeeStats();
+            nextSpellingBeeWord();
+        }
+
+        function nextSpellingBeeWord() {
+            spellingBeeCardToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            spellingBeeHint.textContent = `Hint: ${spellingBeeCardToGuess.arabicMeaning}`;
+            spellingGuessInput.value = '';
+            spellingGuessInput.disabled = false;
+            spellingGuessInput.focus();
+            [submitSpellingBtn, skipSpellingBtn].forEach(b => b.disabled = false);
+
+            // Announce the word after a short delay
+            setTimeout(() => {
+                 pronounceText(spellingBeeCardToGuess.word, 'en-US');
+            }, 500);
+        }
+
+        function checkSpellingGuess() {
+            const guess = spellingGuessInput.value.trim().toLowerCase();
+            if (!guess) return;
+
+            const correctWord = spellingBeeCardToGuess.word.toLowerCase();
+            const isCorrect = guess === correctWord;
+            
+            [submitSpellingBtn, skipSpellingBtn, spellingGuessInput].forEach(el => el.disabled = true);
+
+            if (isCorrect) {
+                spellingBeeScore++;
+                updateSpellingBeeStats();
+                const details = createWordDetailHTML(spellingBeeCardToGuess);
+                showNotification(`✅ Correct!${details}`, false, 4000);
+                setTimeout(nextSpellingBeeWord, 4000);
+            } else {
+                spellingBeeLives--;
+                updateSpellingBeeStats();
+                const details = createWordDetailHTML(spellingBeeCardToGuess);
+                showNotification(`❌ Incorrect. The word was: ${spellingBeeCardToGuess.word}${details}`, true, 5000);
+                
+                spellingGuessInput.style.animation = 'shake 0.5s';
+                setTimeout(() => spellingGuessInput.style.animation = '', 500);
+
+                if (spellingBeeLives > 0) {
+                    setTimeout(nextSpellingBeeWord, 5000);
+                } else {
+                    endSpellingBeeGame(false);
+                }
+            }
+        }
+        
+        function updateSpellingBeeStats() {
+            spellingBeeScoreEl.textContent = `Score: ${spellingBeeScore}`;
+            spellingBeeLivesEl.textContent = `Lives: ${spellingBeeLives} ❤️`;
+        }
+
+        function endSpellingBeeGame(won) {
+            const message = won ? "🎉 Congratulations! You completed the spelling bee!" : "😭 Game Over! Better luck next time.";
+            showNotification(message, !won, 6000);
+            [submitSpellingBtn, skipSpellingBtn, spellingGuessInput].forEach(el => el.disabled = true);
+        }
 
     </script>
 </body>
 </html>
-
-
