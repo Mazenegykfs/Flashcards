@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive English Flashcards - Memorize & Quiz</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #f72585;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #17a2b8;
+            --warning: #ff9f1c;
+            --purple: #7b2cbf;
+            --bg-color: #e0f7fa; /* Light Blue Background */
+            --blue-btn: #007bff; /* Blue Button */
+            --red-btn: #f44336;   /* Red Button */
+            --header-bg: #023e8a;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: var(--header-bg);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .file-selector-section, .level-selector-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        #fileSelect {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin-bottom: 15px;
+        }
+        .mode-selector {
+            background: white;
+            padding: 10px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+        .mode-btn, .level-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: none;
+            background-color: transparent;
+            color: var(--header-bg);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 120px; /* Ensure buttons don't get too small */
+        }
+        .mode-btn.active {
+            background-color: var(--header-bg);
+            color: white;
+            box-shadow: 0 4px 10px rgba(2, 62, 138, 0.3);
+        }
+        .flashcard-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        #searchInput {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin-bottom: 15px;
+        }
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+        }
+        .btn.blue { background: var(--blue-btn); }
+        .btn.red { background: var(--red-btn); }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .card-container {
+            perspective: 1000px;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .card-front {
+            background: linear-gradient(135deg, #81d4fa, #4fc3f7);
+            color: white;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+            color: var(--dark);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+        }
+        .quiz-view {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .quiz-length-selector {
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        #quizLengthInput {
+            width: 100px;
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-left: 10px;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .quiz-score, .quiz-progress { font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .quiz-question { font-size: 1.3rem; margin-bottom: 20px; font-weight: 500; }
+        #quizQuestionLevel1 { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        #quizQuestionIcon { font-size: 4rem; }
+        #quizQuestionWord { font-size: 2.5rem; font-weight: bold; }
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .option-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+        }
+        .option-btn.correct { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .option-btn.incorrect { background-color: var(--red-btn) !important; color: white !important; border-color: var(--red-btn) !important; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .word-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .description { font-size: 1.1rem; margin-bottom: 20px; }
+        .arabic-meaning { font-size: 1.8rem; font-weight: bold; color: var(--primary); direction: rtl; font-family: 'Tahoma', sans-serif; }
+        .card-icon { font-size: 4rem; margin-bottom: 20px; }
+        .pronounce-btn {
+            background: none; border: none; font-size: 2.5rem; color: white; cursor: pointer;
+            transition: transform 0.2s; padding: 0; line-height: 1;
+        }
+        .pronounce-btn:hover { transform: scale(1.1); }
+        .navigation { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .progress { font-weight: bold; }
+        .word-list { margin-top: 20px; max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; }
+        .word-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: all 0.2s ease; border-radius: 5px; }
+        .word-item:last-child { border-bottom: none; }
+        .word-item:hover { background-color: rgba(76, 201, 240, 0.1); }
+        .word-item.active { background-color: var(--primary); color: white; font-weight: bold; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; background: var(--success); color: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); transform: translateX(120%); transition: transform 0.4s ease-in-out; z-index: 1000; display: flex; align-items: flex-start; gap: 10px; max-width: 350px; text-align: left; }
+        .notification.error { background: var(--red-btn); }
+        .notification.show { transform: translateX(0); }
+        .hidden { display: none !important; }
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+        .lang-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 25px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .lang-btn {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            background-color: transparent;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .lang-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .controls-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        #speedControl {
+            width: 150px;
+        }
+        #speedValue {
+            font-weight: bold;
+            color: var(--primary);
+            min-width: 40px;
+        }
+
+        /* --- Game Styles --- */
+        .game-menu {
+            text-align: center;
+        }
+        .game-menu h2 {
+            margin-bottom: 20px;
+        }
+        .game-menu .btn {
+            width: 80%;
+            max-width: 300px;
+            margin: 10px auto;
+            font-size: 1.2rem;
+        }
+        #matchingGameContainer, #hangmanGameContainer, #wordScrambleGameContainer, #spellingBeeGameContainer {
+            min-height: 400px;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        #matchBoard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .matching-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .match-item {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            background-color: #fafafa;
+        }
+        .match-item:hover {
+            border-color: var(--primary);
+            background-color: #f0f8ff;
+        }
+        .match-item.selected {
+            border-color: var(--primary);
+            background-color: var(--accent);
+            color: white;
+        }
+        .match-item.correct {
+            border-color: var(--success);
+            background-color: var(--success);
+            color: white;
+            transform: scale(1.05);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .match-item.incorrect {
+            border-color: var(--red-btn);
+            background-color: var(--red-btn);
+            color: white;
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Hangman Styles */
+        #hangmanDrawing {
+            width: 150px;
+            height: 180px;
+            margin: 0 auto 15px;
+        }
+        #hangmanDrawing .hg-part {
+            stroke: var(--dark);
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #hangmanDrawing .hg-part.draw {
+            opacity: 1;
+        }
+        #hangmanWord {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .letter-box {
+            width: 40px;
+            height: 40px;
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        #hangmanKeyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .key {
+            padding: 10px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        .key:disabled {
+            cursor: not-allowed;
+        }
+        .key.correct {
+            background-color: var(--success);
+            color: white;
+        }
+        .key.incorrect {
+            background-color: var(--red-btn);
+            color: white;
+            opacity: 0.6;
+        }
+
+        /* Word Scramble Styles */
+        #wordScrambleGameContainer { text-align: center; }
+        #scrambledWord {
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: var(--primary);
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 10px;
+        }
+        #scrambleGuessInput {
+            width: 80%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin: 15px auto;
+            text-align: center;
+        }
+        #scrambleControls .btn {
+            margin: 0 10px;
+        }
+        
+        /* Spelling Bee Styles */
+        #spellingBeeGameContainer { 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #hearWordAgainBtn {
+            font-size: 4rem;
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+        }
+        #hearWordAgainBtn:hover {
+            transform: scale(1.1);
+        }
+        #spellingBeeHint {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            direction: rtl;
+        }
+        #spellingGuessInput {
+            width: 90%;
+            max-width: 450px;
+            padding: 15px;
+            font-size: 1.8rem;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            margin: 15px auto;
+            text-align: center;
+            text-transform: lowercase;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interactive English Flashcards</h1>
+            <div class="subtitle">Developed by Dr. Mazen Badawy – Doctorate of English Teaching and Testing</div>
+        </header>
+
+        <section id="unitSelectorSection" class="hidden" style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+            <h2>Select a Unit</h2>
+            <select id="unitSelect" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; border: 2px solid var(--accent); margin-top: 10px;"></select>
+        </section>
+
+        <div id="appContainer" class="hidden">
+            <div class="mode-selector">
+                <button class="mode-btn active" id="memorizeModeBtn">🧠 Memorize</button>
+                <button class="mode-btn" id="searchModeBtn">🔍 Search</button>
+                <button class="mode-btn" id="quizModeBtn">🏆 Quiz</button>
+                <button class="mode-btn" id="gamesModeBtn">🎮 Games</button>
+            </div>
+
+            <main class="main-content">
+                 <div class="flashcard-section">
+                     <!-- Search Section -->
+                     <div id="searchSection" class="hidden">
+                         <div class="lang-selector" style="margin-bottom: 15px; text-align: center;">
+                             <button class="lang-btn active" data-lang="en">Search English</button>
+                             <button class="lang-btn" data-lang="ar">Search Arabic</button>
+                         </div>
+                         <input type="text" id="searchInput" placeholder="Search words (use * for wildcard)...">
+                         <div id="searchResults" class="word-list" style="margin-top: 0; margin-bottom: 20px; max-height: 250px;"></div>
+                     </div>
+
+                     <!-- Quiz Level Selector -->
+                     <div id="levelSelectView" class="level-selector-section hidden">
+                         <h2>Select Quiz Level</h2>
+                         <div class="quiz-length-selector">
+                             <label for="quizLengthInput">Number of Questions:</label>
+                             <input type="number" id="quizLengthInput" value="20" min="4">
+                         </div>
+                         <button id="level1Btn" class="btn blue" style="width: 100%; margin: 10px 0;">Level 1: Word ➔ Meaning</button>
+                         <button id="level2Btn" class="btn blue" style="width: 100%; margin: 10px 0;">Level 2: Description ➔ Word</button>
+                     </div>
+
+                     <!-- Games Section -->
+                     <div id="gamesSection" class="hidden">
+                         <div id="gameMenuView" class="game-menu">
+                             <h2>Vocabulary Games</h2>
+                             <button id="startMatchingGameBtn" class="btn blue">Matching Game</button>
+                             <button id="startHangmanGameBtn" class="btn" style="background-color: var(--warning);">Hangman</button>
+                             <button id="startWordScrambleGameBtn" class="btn" style="background-color: var(--accent);">Word Scramble</button>
+                             <button id="startSpellingBeeGameBtn" class="btn" style="background-color: var(--purple);">Spelling Bee</button>
+                         </div>
+                         <div id="matchingGameContainer" class="hidden">
+                             <div id="matchingGameHeader" class="game-header">
+                                 <span id="matchScore">Score: 0</span>
+                                 <button id="restartMatchingGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="matchBoard">
+                                 <div class="matching-column" id="matchWordsColumn"></div>
+                                 <div class="matching-column" id="matchMeaningsColumn"></div>
+                             </div>
+                         </div>
+                         <div id="hangmanGameContainer" class="hidden">
+                           <div class="game-header">
+                                <span id="hangmanLives">Lives: 6</span>
+                                <button id="restartHangmanGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                           <svg id="hangmanDrawing">
+                               <!-- Stand -->
+                               <line class="hg-part" x1="20" y1="170" x2="100" y2="170" /> 
+                               <line class="hg-part" x1="60" y1="170" x2="60" y2="20" />
+                               <line class="hg-part" x1="60" y1="20" x2="140" y2="20" />
+                               <line class="hg-part" x1="140" y1="20" x2="140" y2="50" />
+                               <!-- Body Parts -->
+                               <circle id="hg-head" class="hg-part" cx="140" cy="70" r="20" />
+                               <line id="hg-body" class="hg-part" x1="140" y1="90" x2="140" y2="130" />
+                               <line id="hg-arm1" class="hg-part" x1="140" y1="100" x2="110" y2="120" />
+                               <line id="hg-arm2" class="hg-part" x1="140" y1="100" x2="170" y2="120" />
+                               <line id="hg-leg1" class="hg-part" x1="140" y1="130" x2="110" y2="150" />
+                               <line id="hg-leg2" class="hg-part" x1="140" y1="130" x2="170" y2="150" />
+                           </svg>
+                           <div id="hangmanWord"></div>
+                           <div id="hangmanKeyboard"></div>
+                         </div>
+                         <div id="wordScrambleGameContainer" class="hidden">
+                             <div class="game-header">
+                                 <span id="scrambleScore">Score: 0</span>
+                                 <button id="restartWordScrambleGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="scrambledWord"></div>
+                             <input type="text" id="scrambleGuessInput" placeholder="Type your guess...">
+                             <div id="scrambleControls">
+                                 <button id="submitScrambleBtn" class="btn blue">Submit</button>
+                                 <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                             </div>
+                         </div>
+                         <div id="spellingBeeGameContainer" class="hidden">
+                            <div class="game-header">
+                                <span id="spellingBeeScore">Score: 0</span>
+                                <span id="spellingBeeLives">Lives: 5 ❤️</span>
+                                <button id="restartSpellingBeeGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                            <button id="hearWordAgainBtn" title="Hear word again">🔊</button>
+                            <div id="spellingBeeHint">Hint will appear here</div>
+                            <input type="text" id="spellingGuessInput" placeholder="Type what you hear...">
+                            <div id="spellingBeeControls">
+                                <button id="submitSpellingBtn" class="btn blue">Submit</button>
+                                <button id="skipSpellingBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                            </div>
+                         </div>
+                     </div>
+
+                     <div id="controlsSection" class="controls-section hidden">
+                         <div class="control-group">
+                             <label for="speedControl"><strong>Voice Speed:</strong></label>
+                             <input type="range" id="speedControl" min="0.5" max="2" value="1" step="0.1">
+                             <span id="speedValue">1.0x</span>
+                         </div>
+                         <div class="control-group checkbox-group">
+                             <strong>Pronounce:</strong>
+                             <label><input type="checkbox" id="pronounceWordCheck" checked> Word</label>
+                             <label><input type="checkbox" id="pronounceArabicCheck"> Arabic</label>
+                             <label><input type="checkbox" id="pronounceDescriptionCheck"> Description</label>
+                         </div>
+                     </div>
+
+                     <div class="card-container" id="cardContainer">
+                         <!-- Memorize View -->
+                         <div class="card" id="memorizeView">
+                             <div class="card-face card-front">
+                                 <div class="card-icon" id="cardIcon">📚</div>
+                                 <div class="word-container">
+                                     <div class="word" id="wordFront"></div>
+                                     <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+                                 </div>
+                             </div>
+                             <div class="card-face card-back">
+                                 <div class="description" id="description"></div>
+                                 <div class="arabic-meaning" id="arabicMeaning"></div>
+                             </div>
+                         </div>
+
+                         <!-- Quiz View -->
+                         <div id="quizView" class="quiz-view hidden">
+                             <div class="quiz-header">
+                                 <div class="quiz-progress" id="quizProgress">Question: 0/0</div>
+                                 <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
+                                 <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
+                             </div>
+                             <div class="quiz-question" id="quizQuestion">
+                                 <span id="quizQuestionText"></span>
+                                 <div id="quizQuestionLevel1" class="hidden">
+                                     <div id="quizQuestionIcon"></div>
+                                     <div id="quizQuestionWord"></div>
+                                 </div>
+                             </div>
+                             <div class="quiz-options" id="quizOptions"></div>
+                         </div>
+                     </div>
+
+                     <div class="navigation" id="memorizeNav">
+                         <button class="btn red" id="prevBtn">⬅️ Previous</button>
+                         <div class="progress" id="progress">0 / 0</div>
+                         <button class="btn" id="shuffleBtn" style="background-color: var(--primary);">🔀 Shuffle</button>
+                         <button class="btn" id="autoplayBtn" style="background-color: var(--accent);">▶️ Autoplay</button>
+                         <button class="btn blue" id="nextBtn">Next ➡️</button>
+                     </div>
+
+                     <div class="word-list" id="wordList"></div>
+                 </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Notification</div>
+
+    <script>
+        // --- DOM Elements ---
+        const unitSelectorSection = document.getElementById('unitSelectorSection');
+        const unitSelect = document.getElementById('unitSelect');
+        const appContainer = document.getElementById('appContainer');
+        const cardContainer = document.getElementById('cardContainer');
+        const memorizeView = document.getElementById('memorizeView');
+        const levelSelectView = document.getElementById('levelSelectView');
+        const level1Btn = document.getElementById('level1Btn');
+        const level2Btn = document.getElementById('level2Btn');
+        const quizView = document.getElementById('quizView');
+        const card = document.getElementById('memorizeView');
+        const wordFront = document.getElementById('wordFront');
+        const description = document.getElementById('description');
+        const arabicMeaning = document.getElementById('arabicMeaning');
+        const cardIcon = document.getElementById('cardIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const autoplayBtn = document.getElementById('autoplayBtn');
+        const progress = document.getElementById('progress');
+        const wordList = document.getElementById('wordList');
+        const notification = document.getElementById('notification');
+        const pronounceBtn = document.getElementById('pronounceBtn');
+        const memorizeModeBtn = document.getElementById('memorizeModeBtn');
+        const searchModeBtn = document.getElementById('searchModeBtn');
+        const quizModeBtn = document.getElementById('quizModeBtn');
+        const gamesModeBtn = document.getElementById('gamesModeBtn');
+        const memorizeNav = document.getElementById('memorizeNav');
+        const quizLengthInput = document.getElementById('quizLengthInput');
+        const quizProgress = document.getElementById('quizProgress');
+        const quizScore = document.getElementById('quizScore');
+        const restartQuizBtn = document.getElementById('restartQuizBtn');
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizQuestionText = document.getElementById('quizQuestionText');
+        const quizQuestionLevel1 = document.getElementById('quizQuestionLevel1');
+        const quizQuestionIcon = document.getElementById('quizQuestionIcon');
+        const quizQuestionWord = document.getElementById('quizQuestionWord');
+        const quizOptions = document.getElementById('quizOptions');
+        const searchSection = document.getElementById('searchSection');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const controlsSection = document.getElementById('controlsSection');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
+        const pronounceWordCheck = document.getElementById('pronounceWordCheck');
+        const pronounceArabicCheck = document.getElementById('pronounceArabicCheck');
+        const pronounceDescriptionCheck = document.getElementById('pronounceDescriptionCheck');
+        // Game Elements
+        const gamesSection = document.getElementById('gamesSection');
+        const gameMenuView = document.getElementById('gameMenuView');
+        // Matching Game
+        const startMatchingGameBtn = document.getElementById('startMatchingGameBtn');
+        const matchingGameContainer = document.getElementById('matchingGameContainer');
+        const restartMatchingGameBtn = document.getElementById('restartMatchingGameBtn');
+        const matchScoreEl = document.getElementById('matchScore');
+        const matchWordsColumn = document.getElementById('matchWordsColumn');
+        const matchMeaningsColumn = document.getElementById('matchMeaningsColumn');
+        // Hangman Game
+        const startHangmanGameBtn = document.getElementById('startHangmanGameBtn');
+        const hangmanGameContainer = document.getElementById('hangmanGameContainer');
+        const restartHangmanGameBtn = document.getElementById('restartHangmanGameBtn');
+        const hangmanLivesEl = document.getElementById('hangmanLives');
+        const hangmanDrawing = document.getElementById('hangmanDrawing');
+        const hangmanWordEl = document.getElementById('hangmanWord');
+        const hangmanKeyboard = document.getElementById('hangmanKeyboard');
+        // Word Scramble Game
+        const startWordScrambleGameBtn = document.getElementById('startWordScrambleGameBtn');
+        const wordScrambleGameContainer = document.getElementById('wordScrambleGameContainer');
+        const restartWordScrambleGameBtn = document.getElementById('restartWordScrambleGameBtn');
+        const scrambleScoreEl = document.getElementById('scrambleScore');
+        const scrambledWordEl = document.getElementById('scrambledWord');
+        const scrambleGuessInput = document.getElementById('scrambleGuessInput');
+        const scrambleControls = document.getElementById('scrambleControls');
+        const submitScrambleBtn = document.getElementById('submitScrambleBtn');
+        const skipScrambleBtn = document.getElementById('skipScrambleBtn');
+        // Spelling Bee Elements
+        const startSpellingBeeGameBtn = document.getElementById('startSpellingBeeGameBtn');
+        const spellingBeeGameContainer = document.getElementById('spellingBeeGameContainer');
+        const restartSpellingBeeGameBtn = document.getElementById('restartSpellingBeeGameBtn');
+        const spellingBeeScoreEl = document.getElementById('spellingBeeScore');
+        const spellingBeeLivesEl = document.getElementById('spellingBeeLives');
+        const hearWordAgainBtn = document.getElementById('hearWordAgainBtn');
+        const spellingBeeHint = document.getElementById('spellingBeeHint');
+        const spellingGuessInput = document.getElementById('spellingGuessInput');
+        const submitSpellingBtn = document.getElementById('submitSpellingBtn');
+        const skipSpellingBtn = document.getElementById('skipSpellingBtn');
+
+
+        // --- App State ---
+        let allFlashcards = [];
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let currentMode = 'memorize';
+        let searchLanguage = 'en'; // 'en' or 'ar'
+        let isAutoplaying = false;
+        let autoplayTimeout = null;
+        let speechRate = 1.0;
+        // Quiz State
+        let currentQuizLevel = 1;
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let score = 0;
+        // Matching Game State
+        let selectedWordEl = null;
+        let selectedMeaningEl = null;
+        let matchScore = 0;
+        let pairsToMatch = 0;
+        // Hangman State
+        let hangmanWordToGuess = '';
+        let hangmanCardToGuess = null;
+        let hangmanGuessedLetters = [];
+        let hangmanWrongGuesses = 0;
+        const HANGMAN_MAX_WRONG = 6;
+        // Word Scramble State
+        let scrambleWordToGuess = null;
+        let scrambleScore = 0;
+        // Spelling Bee State
+        let spellingBeeCardToGuess = null;
+        let spellingBeeScore = 0;
+        let spellingBeeLives = 0;
+        const SPELLING_BEE_MAX_LIVES = 5;
+
+        const colorMap = {
+            'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff', 'yellow': '#ffff00',
+            'orange': '#ffa500', 'purple': '#800080', 'pink': '#ffc0cb', 'black': '#000000',
+            'white': '#ffffff', 'gray': '#808080', 'grey': '#808080', 'brown': '#a52a2a',
+            'cyan': '#00ffff', 'magenta': '#ff00ff', 'lime': '#00ff00', 'maroon': '#800000',
+            'navy': '#000080', 'olive': '#808000', 'teal': '#008080', 'silver': '#c0c0c0', 'gold': '#ffd700'
+        };
+
+        const csvData = `Unit,Word,Icon,Description,Arabic Meaning
+Agricultural Technology,Artificial Intelligence,🧠🤖,Using AI to analyze and predict crop needs,الذكاء الاصطناعي  
+Agricultural Technology,Automation Control,🎛️,System regulating farm processes automatically,التحكم الآلي  
+Agricultural Technology,Automation System,⚙️💡,Integrated setup controlling farm operations,نظام آلي  
+Agricultural Technology,Blockchain,🔗💰,Ensuring transparency in agricultural trade,سلسلة الكتل  
+Agricultural Technology,Cloud Computing,☁️💻,Storing and processing farm data online,الحوسبة السحابية  
+Agricultural Technology,Combine Harvester,🌾⚙️,Machine that harvests, threshes, and cleans grains,الحصادة الدراسية
+Agricultural Technology,Digital Mapping,🗺️📊,Creating maps using digital data,رسم الخرائط الرقمية  
+Agricultural Technology,Drip Irrigation System,💧🪴,System delivering water directly to roots,نظام الري بالتنقيط  
+Agricultural Technology,Drone,🚁🌾,Aerial device for monitoring crops and spraying,طائرة زراعية مسيّرة  
+Agricultural Technology,Fertilizer Spreader,🧪🌱,Machine that distributes fertilizer evenly,ناشر السماد  
+Agricultural Technology,GIS,🗺️,System analyzing spatial agricultural data,نظام المعلومات الجغرافية  
+Agricultural Technology,GPS,🛰️📍,System for determining precise farm locations,نظام تحديد المواقع  
+Agricultural Technology,Harrow,🪓,Equipment for breaking soil clods and leveling,المذراة  
+Agricultural Technology,IoT,🌐📶,Connecting farm devices through the Internet,إنترنت الأشياء  
+Agricultural Technology,Irrigation Pump,💧🔧,Machine used to lift and distribute water,مضخة الري  
+Agricultural Technology,Leveler,📏,Equipment for flattening field surfaces,آلة تسوية الأرض  
+Agricultural Technology,Machine Learning,📚🤖,AI method for improving predictions,تعلم الآلة  
+Agricultural Technology,Mobile Application,📱🌾,App used to manage and monitor farms,تطبيق الهاتف الزراعي  
+Agricultural Technology,Plow,🔱,Tool for turning and loosening the soil,المحراث  
+Agricultural Technology,Power Tiller,⚙️🌱,Compact machine for soil preparation,الحراثة الآلية الصغيرة  
+Agricultural Technology,Reaper,✂️🌾,Machine that cuts standing rice crops,المنجل الآلي  
+Agricultural Technology,Remote Sensing,🛰️🌍,Collecting data from satellite or aircraft,الاستشعار عن بعد  
+Agricultural Technology,Rice Mill,🏭🌾,Machine for removing husk and polishing rice,مطحنة الأرز  
+Agricultural Technology,Robotics,🤖🚜,Use of robots in farming operations,الروبوتات الزراعية  
+Agricultural Technology,Rotavator,🔄🌾,Machine for mixing and preparing soil,آلة الحراثة الدوارة  
+Agricultural Technology,Satellite Imaging,🛰️📸,Capturing images for crop assessment,التصوير بالأقمار الصناعية  
+Agricultural Technology,Seeder,🌾🎯,Machine that plants seeds evenly in the field,آلة بذارة  
+Agricultural Technology,Sensor,📡🌿,Device detecting environmental or crop data,المستشعر  
+Agricultural Technology,Smart Farming,💡🌾,Technology-based approach to agriculture,الزراعة الذكية  
+Agricultural Technology,Sprayer,🧴🌿,Equipment for applying pesticides or fertilizers,آلة الرش  
+Agricultural Technology,Storage Silo,🏗️,Structure for storing harvested grain,صومعة التخزين  
+Agricultural Technology,Threshing Machine,⚙️,Separates rice grains from stalks,آلة الدراس  
+Agricultural Technology,Tractor,🚜,Vehicle used for pulling farm implements,الجرار الزراعي  
+Agricultural Technology,Transplanter,🌱🤖,Machine used to transplant rice seedlings,آلة الشتل  
+Agricultural Technology,Water Sprinkler,🚿,Device distributing water in fine droplets,مرش المياه  
+Agricultural Technology,Weeder,🌿🪓,Tool for removing unwanted plants,آلة إزالة الأعشاب  
+Climate Environment,Transpiration,🌿💧,Water loss from plant leaves,النتح
+Climate Environment,Adaptation,🌱🔄,Adjustment to changing environmental conditions,التكيف  
+Climate Environment,Carbon Dioxide,💨🌿,Gas essential for photosynthesis and growth,ثاني أكسيد الكربون  
+Climate Environment,Climate Change,🌍🔥,Long-term shifts in temperature and weather,تغير المناخ  
+Climate Environment,Climate,🌍🌦️,Long-term weather patterns in a region,المناخ  
+Climate Environment,Condensation,💧☁️,Vapor changing into liquid droplets,التكاثف  
+Climate Environment,Drought,☀️🚫,Prolonged period of water shortage,الجفاف  
+Climate Environment,Environmental Impact,🌿⚖️,Effect of human activity on nature,الأثر البيئي  
+Climate Environment,Evaporation,💦☀️,Process of water turning into vapor,التبخر  
+Climate Environment,Flood,🌊🏞️,Overflow of water onto land,الفيضانات  
+Climate Environment,Flooding,🌊,Excess water covering rice fields,الفيضانات  
+Climate Environment,Global Warming,🌍🔥,Rise in Earth’s average temperature,الاحتباس الحراري العالمي  
+Climate Environment,Greenhouse Effect,🏠🌡️,Heat trapped by gases in atmosphere,الاحتباس الحراري  
+Climate Environment,Greenhouse Gas,🫧,Gas trapping heat in the atmosphere,غازات الاحتباس الحراري  
+Climate Environment,Humidity,💧,Amount of moisture in the air,الرطوبة  
+Climate Environment,Methane,🔥🫧,Potent greenhouse gas from rice fields,غاز الميثان  
+Climate Environment,Microclimate,🌤️🌾,Local atmospheric conditions around crops,المناخ المحلي  
+Climate Environment,Monsoon,💨🌧️,Seasonal wind bringing heavy rain,الرياح الموسمية  
+Climate Environment,Rainfall,🌧️,Amount of precipitation received,معدل الأمطار  
+Climate Environment,Salinity,🧂,Presence of salts in soil or water,الملوحة  
+Climate Environment,Soil Temperature,🌡️🌱,Heat level within the soil,درجة حرارة التربة  
+Climate Environment,Sunlight,☀️,Light energy essential for photosynthesis,ضوء الشمس  
+Climate Environment,Temperature,🌡️,Degree of heat affecting plant growth,درجة الحرارة  
+Climate Environment,Weather Station,📡🌦️,Facility measuring atmospheric data,محطة الأرصاد الجوية  
+Climate Environment,Weather,🌤️,Short-term atmospheric conditions,الطقس  
+Climate Environment,Wind Speed,💨📏,Rate of air movement,سرعة الرياح  
+Climate Environment,Wind,💨,Air movement influencing evaporation and pollination,الرياح  
+Crop Management,Germination,☀️💧,Process of seed sprouting,الإنبات  
+Crop Management,Harrowing,⚙️,Breaking soil clods after plowing,التسوية  
+Crop Management,Leveling,📏🌍,Making field surface even for irrigation,تسوية الأرض  
+Crop Management,Mulching,🟫,Covering soil to retain moisture,التغطية  
+Crop Management,Organic Farming,🍃🌾,Growing crops without synthetic chemicals,الزراعة العضوية  
+Crop Management,Planting,🌱,Placing seeds or seedlings in the soil,الزراعة  
+Crop Management,Plowing,🪓🌾,Turning and loosening the soil,الحراثة  
+Crop Management,Post-Harvest Handling,📦🌾,Processing and storing crops after harvest,معالجة ما بعد الحصاد  
+Crop Management,Postharvest,🏭🌾,Handling and processing after harvest,ما بعد الحصاد  
+Crop Management,Precision Agriculture,📡🌾,Using technology to optimize farming,الزراعة الدقيقة  
+Crop Management,Pruning,✂️🌿,Cutting parts of plants to improve growth,التقليم  
+Crop Management,Record Keeping,🧾✍️,Documenting field operations and yields,تسجيل العمليات الزراعية  
+Crop Management,Rotation,🔄🌿,Alternating crops to maintain soil health,الدورة الزراعية  
+Crop Management,Seed Rate,⚖️🌱,Quantity of seed used per area,معدل التقاوي  
+Crop Management,Soil Science and Fertility,🌱💪,Soil’s ability to support plant growth,خصوبة التربة  
+Crop Management,Spacing,📏🌾,Distance between plants or rows,التباعد بين النباتات  
+Crop Management,Thinning,🌿⚖️,Removing extra seedlings for better spacing,الخَفّ  
+farm management,Agroecology,🌱🌎,Study of ecological processes in agriculture,علم البيئة الزراعية
+farm management,Carbon Footprint,🦶🌫️,Total greenhouse gas emissions from farming,البصمة الكربونية
+farm management,Cost Analysis,💵📉,Evaluating production expenses and efficiency,تحليل التكاليف
+farm management,Farm Management,🧑‍🌾,Planning and organizing farm activities for efficiency,إدارة المزرعة
+farm management,Labor,👷‍♂️,Human effort used in cultivation and harvesting,العمالة
+farm management,Mechanization,🚜,Using machines to improve farm efficiency,الميكنة
+farm management,Output,📦,The resulting product or yield from farming,المخرجات
+farm management,Productivity,📈🌾,The amount of output per unit of input,الإنتاجية
+farm management,Profitability,💰,The financial gain from rice production,الربحية
+farm management,Sustainability,🌍,Using resources without harming future generations,الاستدامة
+farm management,Waste Management,🚮,Handling and recycling of agricultural waste,إدارة النفايات
+Farm Management,Input,⚙️,Resources used in production (seed, water, fertilizer),المدخلات
+Farm Management,Renewable Energy,☀️💨,Energy from solar, wind, or other natural sources,الطاقة المتجددة
+Farm Management,Resource Management,🧭,Efficient use of soil, water, and energy,إدارة الموارد
+Farm Management,Sustainable Development,🌾♻️,Growth that balances economy, society, and environment,التنمية المستدامة
+Field Experimentation and Sampling,Analysis of Variance (ANOVA),📊,Statistical test comparing means among groups,تحليل التباين
+Field Experimentation and Sampling,Anemometer,💨,Measures wind speed,مقياس سرعة الرياح  
+Field Experimentation and Sampling,Balance,⚖️,Instrument for measuring mass,الميزان  
+Field Experimentation and Sampling,Barometer,🌤️,Measures atmospheric pressure,مقياس الضغط الجوي  
+Field Experimentation and Sampling,Beaker,🥼,Container for mixing and heating liquids,الكأس الزجاجي  
+Field Experimentation and Sampling,Burette,⚗️,Instrument for dispensing measured liquid,السحاحة  
+Field Experimentation and Sampling,Centrifuge,🌀,Device that spins samples for separation,الطاردة المركزية  
+Field Experimentation and Sampling,Chlorophyll Meter,🍃,Measures chlorophyll content in leaves,مقياس الكلوروفيل  
+Field Experimentation and Sampling,Cluster Sampling,🌍,Selecting groups instead of individuals,العينة العنقودية  
+Field Experimentation and Sampling,Confidence Interval,📏📊,Range of values likely to contain the true mean,فترة الثقة
+Field Experimentation and Sampling,Control Group,🚫,Group not receiving experimental treatment,المجموعة الضابطة  
+Field Experimentation and Sampling,Control,🧊,The standard for comparison in an experiment,الضبط
+Field Experimentation and Sampling,Data Logger,💾,Electronic device for recording measurements,مسجل البيانات  
+Field Experimentation and Sampling,Dependent Variable,📈,Outcome measured in the experiment,المتغير التابع  
+Field Experimentation and Sampling,Design of Experiments,🧮,Planning structure for data collection and analysis,تصميم التجارب
+Field Experimentation and Sampling,Experimental Group,🧪,Group exposed to treatment or variable,المجموعة التجريبية  
+Field Experimentation and Sampling,Field Notes,📓,Written records of observations and data,ملاحظات ميدانية  
+Field Experimentation and Sampling,Field Plot,🌾,Small area used for testing treatments,قطعة الحقل  
+Field Experimentation and Sampling,Fieldwork,🧑‍🌾,Practical data collection outside the lab,العمل الميداني  
+Field Experimentation and Sampling,Flask,🧪,Glass container with narrow neck,القارورة  
+Field Experimentation and Sampling,Flow Meter,💧➡️,Measures rate of water flow,مقياس تدفق المياه  
+Field Experimentation and Sampling,GPS Device,📍,Determines geographic location of samples,جهاز تحديد المواقع  
+Field Experimentation and Sampling,Graduated Cylinder,📏,Tube used to measure liquid volume,الأسطوانة المدرجة  
+Field Experimentation and Sampling,Hot Plate,🔥,Device for heating substances,اللوح الساخن  
+Field Experimentation and Sampling,Hygrometer,💧,Measures humidity in the air,مقياس الرطوبة  
+Field Experimentation and Sampling,Independent Variable,⚙️,Factor manipulated by the researcher,المتغير المستقل  
+Field Experimentation and Sampling,Infrared Thermometer,🔥,Measures temperature from a distance,مقياس حرارة بالأشعة تحت الحمراء  
+Field Experimentation and Sampling,Laboratory Balance,⚖️🧪,Measures small sample masses precisely,ميزان المختبر  
+Field Experimentation and Sampling,Laboratory Coat,🥼,Protective clothing used in labs,معطف المختبر  
+Field Experimentation and Sampling,Leaf Area Meter,🌿,Measures the surface area of leaves,مقياس مساحة الأوراق  
+Field Experimentation and Sampling,Light Meter,💡,Measures light intensity,مقياس شدة الضوء  
+Field Experimentation and Sampling,Measuring Scale,📉,Instrument for measuring weight,المقياس  
+Field Experimentation and Sampling,Microscope,🔬,Tool to view small organisms or objects,المجهر  
+Field Experimentation and Sampling,Moisture Meter,💦,Measures water content in soil,مقياس رطوبة التربة  
+Field Experimentation and Sampling,Observation Sheet,📋,Paper for recording lab results,ورقة الملاحظة  
+Field Experimentation and Sampling,Observation,👀,Recording what is seen or measured,الملاحظة  
+Field Experimentation and Sampling,Petri Dish,🍽️,Shallow dish for growing cultures,طبق بتري  
+Field Experimentation and Sampling,pH Meter,🧫,Instrument that measures acidity or alkalinity,مقياس الحموضة  
+Field Experimentation and Sampling,Pipette,💧,Tool for transferring small liquid amounts,الماصة  
+Field Experimentation and Sampling,Plot,🏞️,A small area in a field experiment,قطعة تجريبية
+Field Experimentation and Sampling,Rain Gauge,🌧️,Measures amount of rainfall,مقياس المطر  
+Field Experimentation and Sampling,Random Sampling,🎲,Method where every item has equal chance,العينة العشوائية  
+Field Experimentation and Sampling,Randomization,🔀,Assigning treatments by chance,العشوائية  
+Field Experimentation and Sampling,Replication,🔁,Repeating trials to ensure reliability,التكرار  
+Field Experimentation and Sampling,Safety Goggles,🕶️,Protective glasses for experiments,نظارات واقية  
+Field Experimentation and Sampling,Sample Size,📏,Number of units chosen for analysis,حجم العينة  
+Field Experimentation and Sampling,Sampling,🎯,Selecting a representative portion of a population,أخذ العينات  
+Field Experimentation and Sampling,Soil pH Meter,⚗️,Measures soil acidity or alkalinity,مقياس حموضة التربة  
+Field Experimentation and Sampling,Soil Sampler,🪣,Tool for collecting soil samples,أداة أخذ عينات التربة  
+Field Experimentation and Sampling,Spectrophotometer,🌈,Measures light absorption by samples,مطياف الضوء  
+Field Experimentation and Sampling,Stirring Rod,🪵,Glass rod for mixing solutions,عصا التحريك  
+Field Experimentation and Sampling,Stratified Sampling,🧩,Dividing population into subgroups before sampling,العينة الطبقية  
+Field Experimentation and Sampling,Survey,📋,Questionnaire for gathering information,الاستبيان  
+Field Experimentation and Sampling,Systematic Sampling,📐,Selecting samples at regular intervals,العينة المنتظمة  
+Field Experimentation and Sampling,Test Tube,🧫,Small glass tube for experiments,أنبوب الاختبار  
+Field Experimentation and Sampling,Thermometer,🌡️,Device for measuring temperature,مقياس الحرارة  
+Field Experimentation and Sampling,Timer,⏱️,Device used to measure time intervals,المؤقت  
+Field Experimentation and Sampling,Treatment,💧,Condition applied to experimental units,المعاملة  
+Field Experimentation and Sampling,Variable,🔢,Factor that can change in an experiment,المتغير  
+Field Experimentation and Sampling,Weighing Scale,⚖️,Measures mass or weight,ميزان الوزن  
+general,,"&,Rice,🌾,A cereal grain that is a staple food for much of the world,الأرز
+general,ANOVA,📊,Analysis of variance test for comparing means,تحليل التباين
+general,Bacterial blight,🦠,Serious rice disease caused by bacteria,لفحة بكتيرية
+general,Biofertilizer,🧫,Microorganisms enhancing nutrient availability,سماد حيوي
+general,Biomass,⚖️,Total mass of living plant material,الكتلة الحيوية
+general,Blast disease,💥,Fungal disease damaging leaves and panicles,مرض اللفحة
+general,Breeding program,🌾,Systematic process of developing new crop varieties,برنامج تربية نباتية
+general,Bulk density,⚖️,Mass of soil per unit volume,الكثافة الظاهرية
+general,Capillary action,🩸,Movement of water upward through soil pores,الخاصية الشعرية
+general,Caryopsis,🌾,Type of seed where fruit and seed coat are fused,ثمرة الحبة
+general,Chlorophyll content,🌿,Amount of green pigment in leaves,محتوى الكلوروفيل
+general,Climate change,🌍,Long-term shift in temperature and weather patterns,تغير المناخ
+general,Climate resilience,🌦️,Ability of crops to resist weather stress,مقاومة المناخ
+general,Cold stress,❄️,Growth reduction caused by low temperature,إجهاد البرودة
+general,Composting,♻️,Decomposition of organic matter into fertilizer,تحويل النفايات إلى سماد
+general,Conservation tillage,🚜,Soil management minimizing disturbance,حرث محافظ
+general,Control plot,⚖️,Area not receiving experimental treatment,قطعة ضابطة
+general,CRISPR-Cas9,✂️,Genome-editing tool for precise modification,أداة تعديل الجينات كريسبر
+general,Crop duration,⏳,Time from planting to harvest,مدة المحصول
+general,Crop rotation,🔄,Growing different crops in succession,تناوب المحاصيل
+general,Cross-pollination,🌸,Pollination between different plants,تلقيح خلطي
+general,Direct seeding,🌾,Sowing seeds directly into the field soil,البذر المباشر
+general,DNA fingerprinting,🧪,Technique to identify genetic identity,بصمة الحمض النووي
+general,DNA sequencing,🧬,Determining the genetic code of an organism,تسلسل الحمض النووي
+general,Drought tolerance,☀️,Ability to survive water scarcity,تحمل الجفاف
+general,Embryo,🧫,Early developmental stage of a seed,جنين
+general,Endosperm,🍚,Nutritive tissue inside a seed,سويداء البذرة
+general,Experimental design,📊,Plan for conducting scientific tests,تصميم تجريبي
+general,Fallow land,🏜️,Land left unplanted to restore fertility,أرض بور
+general,Fertilizer,🧪,Substance added to soil to enhance plant growth,سماد
+general,Field capacity,🧫,Maximum water held by soil after drainage,السعة الحقلية
+general,Field experiment,🧪,Controlled study conducted in agricultural fields,تجربة حقلية
+general,Flood tolerance,🌊,Ability to survive prolonged flooding,تحمل الغمر
+general,Flowering,🌼,Period when rice flowers open for pollination,مرحلة التزهير
+general,Fungal infection,🍄,Disease caused by fungi,عدوى فطرية
+general,Gene editing,✂️,Modifying genes using tools like CRISPR,تعديل الجينات
+general,Gene expression,🎛️,Process by which genes produce proteins,تعبير جيني
+general,Gene mapping,🗺️,Locating genes on chromosomes,خريطة الجينات
+general,Gene pool,🌿,Total genetic diversity in a population,خزينة الجينات
+general,Genetic diversity,🧬,Variety of genes within a species,التنوع الجيني
+general,Genetic marker,🧫,DNA sequence used to identify genes,واسم جيني
+general,Genetic transformation,⚡,Insertion of new genes into plant DNA,تحويل وراثي
+general,Genetic variation,🧬,Differences in DNA among individuals,تباين وراثي
+general,Genome sequencing,🧫,Decoding the entire genetic material,تسلسل الجينوم
+general,Germination rate,🌱,Speed of seed sprouting,معدل الإنبات
+general,Germplasm bank,🧬,Facility storing plant genetic material for breeding,بنك الجينات
+general,Grain filling,🍚,Stage when grains accumulate starch,مرحلة امتلاء الحبوب
+general,Grain yield,📊,The total production of rice grains per area,محصول الحبوب
+general,Green manure,🌿,Crops grown to enrich soil with nutrients,سماد أخضر
+general,Greenhouse,🏡,Structure for controlled plant growth,دفيئة زراعية
+general,Harvest,🚜,The process of collecting mature crops,الحصاد
+general,Heading,🌸,Stage when panicles emerge from sheath,مرحلة ظهور السنبلة
+general,Heat stress,🔥,Damage caused by high temperature,إجهاد حراري
+general,Hybrid rice,🌾,Rice produced by crossing two varieties for vigor,الأرز الهجين
+general,Hybrid vigor,💪,Increased strength of hybrid offspring,قوة الهجين
+general,Infiltration rate,💦,Speed at which water enters the soil,معدل النفاذ
+general,Leaf area index,🍃,Ratio of leaf area to ground area,مؤشر مساحة الأوراق
+general,Lodging,🌬️,Falling over of rice plants before harvest,رقاد النبات
+general,Marker-assisted selection,🧫,Using genetic markers to select desired traits,الاختيار بمساعدة الواسمات
+general,Maturity stage,🍚,Final stage when grains are fully developed,مرحلة النضج
+general,Molecular breeding,🧬,Using molecular tools in crop improvement,التربية الجزيئية
+general,Molecular marker,🧫,Identifiable DNA sequence for selection,واسم جزيئي
+general,Mutation breeding,⚡,Using radiation or chemicals to create new traits,التربية الطفرية
+general,Mycorrhiza,🍄,Symbiotic fungus helping nutrient absorption,فطر الجذور التكافلي
+general,Nitrogen fixation,⚗️,Conversion of nitrogen gas into usable form by bacteria,تثبيت النيتروجين
+general,Organic matter,🍂,Decomposed plant and animal material in soil,المادة العضوية
+general,Paddy field,🌿,A flooded parcel of arable land used for growing rice,حقل أرز مغمور
+general,Panicle initiation,🌾,Beginning of flowering structure formation,بداية تكوين السنبلة
+general,Pest outbreak,🐛,Sudden increase of harmful insects,تفشٍ للآفات
+general,Photosynthetic rate,☀️,Speed of converting light into energy,معدل التمثيل الضوئي
+general,Protein synthesis,🧫,Production of proteins from gene code,تخليق البروتين
+general,Qualitative trait,🎨,Trait with distinct categories like color,صفة نوعية
+General,Quantitative Trait,📊,Trait measured in degrees, like yield,صفة كمية
+general,Rainfall pattern,🌧️,Distribution of rainfall over time,نمط هطول الأمطار
+general,Reproductive stage,🌸,Phase of flowering and grain formation,المرحلة التناسلية
+general,Rhizobium,🦠,Nitrogen-fixing bacteria in plant roots,بكتيريا الجذور
+general,Water and Irrigation Management,💦,Planning and controlling water use for crops,إدارة المياه
+general,Ripening,🌾,Stage when grains harden and dry,مرحلة النضج التام
+general,Root length density,🌾,Measure of root length per soil volume,كثافة طول الجذور
+general,Root system,🌱,Underground part absorbing water and nutrients,نظام الجذور
+general,Seed dormancy,💤,Period when seed cannot germinate,سبات البذور
+general,Self-pollination,🌼,Pollination within the same flower,تلقيح ذاتي
+general,Shade net,🕸️,Net used to reduce sunlight for crops,شبك تظليل
+general,Soil erosion,🌪️,Wearing away of soil by wind or water,انجراف التربة
+general,Soil moisture,💧,Amount of water contained in the soil,رطوبة التربة
+general,Soil porosity,🕳️,Percentage of soil volume filled with air or water,مسامية التربة
+general,Soil profile,🌍,Vertical section of soil layers,مقطع التربة الرأسي
+general,Soil salinity index,🧂,Measurement of salt content in soil,مؤشر ملوحة التربة
+general,Soil Science and Fertility,🌍,The ability of soil to sustain crop growth,خصوبة التربة
+general,Soil structure,🪴,Arrangement of soil particles into aggregates,تركيب التربة
+General,Soil Texture,🧪,Proportion of sand, silt, and clay,قوام التربة
+general,Statistical analysis,📈,Using math to interpret experimental data,التحليل الإحصائي
+general,Temperature range,🌡️,The span between lowest and highest temperature,نطاق الحرارة
+general,Tiller,🌿,A stem that grows from the base of a grass plant,فرع نباتي
+general,Tillering stage,🌿,Stage when side shoots develop,مرحلة التفريع
+general,Tissue culture,🧫,Growing plant cells under controlled conditions,زراعة الأنسجة
+general,Transgenic plant,🌱,Plant with inserted foreign genes,نبات معدل وراثيًا
+general,Transpiration rate,💧,Rate of water loss through leaves,معدل النتح
+general,Treatment plot,🌾,Area receiving specific experimental conditions,قطعة معالجة
+general,Varietal selection,🧪,Choosing suitable rice varieties for local conditions,اختيار الأصناف
+general,Vegetative stage,🌿,Growth phase before flowering,مرحلة النمو الخضري
+general,Water table,🚰,Level below which the ground is saturated,منسوب المياه الجوفية
+general,Wilting point,🥀,Soil moisture level when plants wilt,نقطة الذبول
+general,Yield component,📈,Factor determining final grain yield,مكونات المحصول
+grain quality,Aeration,💨🌱,Supply of oxygen to plant roots through soil pores,تهوية التربة
+grain quality,Amylose Content,🧪🍚,Starch component affecting rice texture,محتوى الأميلوز
+grain quality,Bran,🌰,The nutrient-rich outer layer of the rice grain,النخالة
+grain quality,Broken Rice,🍚❌,Fragments of rice grains produced during milling,الأرز المكسور
+grain quality,Grain Length,📏🌾,The measurement of rice kernel size,طول الحبة
+grain quality,Grain Quality,🌾⭐,Characteristics determining rice value and preference,جودة الحبوب
+grain quality,Grain,🌾,The edible seed of the rice plant,الحَبّة
+grain quality,Head Rice,🍚✅,Whole grains that remain unbroken after milling,الأرز الكامل
+grain quality,Husk,🌾🟤,The outer protective covering of the grain,القشرة
+grain quality,Maturity,🍚,Stage when the rice grain is fully developed,النضج
+grain quality,pH Level,⚗️,Measurement of soil acidity or alkalinity,درجة الحموضة
+grain quality,Water Stress,😓,Condition when plants lack enough water,إجهاد مائي
+Harvesting and Processing,Brown Rice,🌾,Rice with only husk removed, retaining bran,أرز بني
+Harvesting and Processing,Grain Quality,🧫,Combination of physical, chemical, and cooking traits,جودة الحبوب
+Harvesting and Processing,,Cleaning,🧹🌾,Removing dirt and impurities from grains,التنظيف  
+Harvesting and Processing,,Drying,☀️🌾,Reducing moisture content to prevent spoilage,التجفيف  
+Harvesting and Processing,,Harvest Timing,⏰🌾,Choosing the right time to harvest for maximum yield,توقيت الحصاد  
+Harvesting and Processing,,Inventory Management,📊📦,Keeping track of stored rice quantities,إدارة المخزون  
+Harvesting and Processing,,Labeling,🏷️🌾,Marking grain bags with date and type,الوسم  
+Harvesting and Processing,,Manual Harvesting,🔪👩‍🌾,Cutting rice plants by hand,الحصاد اليدوي  
+Harvesting and Processing,,Market Delivery,🛒🚚,Distributing rice to buyers or retailers,توصيل الأسواق  
+Harvesting and Processing,,Mechanical Harvesting,🚜🌾,Using machines to harvest rice,الحصاد الآلي  
+Harvesting and Processing,,Milling,🏭🌾,Removing husk to produce polished rice,التدوير أو الطحن  
+Harvesting and Processing,,Moisture Control,💧📏,Maintaining optimal moisture levels in storage,التحكم بالرطوبة  
+Harvesting and Processing,,Moisture Testing,🧪💧,Measuring grain moisture before storage,اختبار الرطوبة  
+Harvesting and Processing,,Packaging,📦🌾,Using suitable containers for grain preservation,التعبئة  
+Harvesting and Processing,,Pest Prevention,🛡️🐛,Protecting stored grains from insects and rodents,مكافحة الحشرات  
+Harvesting and Processing,,Quality Monitoring,👀✅,Regularly checking grain quality during storage,مراقبة الجودة  
+Harvesting and Processing,,Reprocessing,🔄🌾,Cleaning or milling grains before sale,إعادة المعالجة  
+Harvesting and Processing,,Storage Facilities,🏠📦,Proper warehouses for grain storage,مستودعات التخزين  
+Harvesting and Processing,,Storage Safety,🛡️🏠,Ensuring grains are safe from fire or contamination,سلامة التخزين  
+Harvesting and Processing,,Temperature Control,🌡️🏠,Regulating storage temperature for quality,التحكم بالحرارة  
+Harvesting and Processing,,Threshing,🌾⚒️,Separating grains from rice stalks,الحرث  
+Harvesting and Processing,,Transport Preparation,🚛🌾,Preparing rice for safe transport to markets,تحضير النقل  
+Harvesting and Processing,,Winnowing,🍃💨,Removing chaff from rice grains,النفخ  
+Harvesting and Processing,Aflatoxin,⚠️,Harmful toxin produced by Aspergillus fungi,الأفلاتوكسين
+Harvesting and Processing,Alkali spreading value,⚗️,Indicator of rice gelatinization temperature,قيمة الانتشار القلوي
+Harvesting and Processing,Amylose content,🍚,Amount of starch affecting rice texture,محتوى الأميلوز
+Harvesting and Processing,Automation,🤖,Use of machines for efficient rice processing,الأتمتة  
+Harvesting and Processing,Bag Sealer,🧵,Machine that closes and seals rice bags,آلة ختم الأكياس  
+Harvesting and Processing,Bioenergy,⚡,Energy produced from rice husk or straw,طاقة حيوية  
+Harvesting and Processing,Branding,🏷️,Creating identity and image for rice products,العلامة التجارية  
+Harvesting and Processing,Broken rice,⚙️,Fragments of rice grains produced during milling,الأرز المكسور
+Harvesting and Processing,Chalkiness,⚪,White opaque area in rice grains,طباشيرية الحبوب
+Harvesting and Processing,Cleaning Machine,⚙️,Device removing impurities before processing,آلة تنظيف  
+Harvesting and Processing,Color Sorter,🌈,Optical device separating discolored grains,آلة فرز الألوان  
+Harvesting and Processing,Composting Straw,♻️,Decomposing straw into organic fertilizer,تحويل القش إلى سماد  
+Harvesting and Processing,Consumer Preference,🧍,Tastes and demands of rice buyers,تفضيلات المستهلك  
+Harvesting and Processing,Conveyor Belt,🔄,System moving rice between processing stages,حزام ناقل  
+Harvesting and Processing,Cooking quality,🍽️,Texture and aroma after cooking,جودة الطهي
+Harvesting and Processing,Destoner,🪨,Equipment that removes stones from rice,فاصل الحجارة  
+Harvesting and Processing,Domestic Market,🏠,Local sale and distribution of rice,السوق المحلي  
+Harvesting and Processing,Energy Efficiency,⚡,Using minimal energy for maximum output,كفاءة الطاقة  
+Harvesting and Processing,Export Documentation,📄,Official papers for shipping rice abroad,مستندات التصدير  
+Harvesting and Processing,Export Market,🌍,International trade of rice products,سوق التصدير  
+Harvesting and Processing,Export Quality,🌍,Standard ensuring rice meets international markets,جودة التصدير  
+Harvesting and Processing,Export quality,🚢,Standard required for international trade,جودة التصدير
+Harvesting and Processing,Food Labeling Law,📑,Legal rules for product information display,قانون وضع الملصقات الغذائية  
+Harvesting and Processing,Food Packaging Design,🎨,Creative visual layout for rice packages,تصميم عبوات الأرز  
+Harvesting and Processing,Food Safety,⚖️,Ensuring rice is free from harmful substances,سلامة الغذاء  
+Harvesting and Processing,Food safety,🧼,Ensuring rice is safe for consumption,سلامة الغذاء
+Harvesting and Processing,Fungal contamination,🍄,Presence of molds during storage,تلوث فطري
+Harvesting and Processing,Gel consistency,🧫,Measure of cooked rice softness,تماسك الهلام
+Harvesting and Processing,Grading Standards,📋,Criteria for classifying rice by quality levels,معايير التصنيف  
+Harvesting and Processing,Grain aeration,💨,Air circulation to maintain grain quality,تهوية الحبوب
+Harvesting and Processing,Grain discoloration,🎨,Change in grain color due to damage,تغير لون الحبوب
+Harvesting and Processing,Grain Elevator,🏗️,Vertical conveyor for moving rice grain,رافعة الحبوب  
+Harvesting and Processing,Grain grading,📋,Classifying rice by size and quality,تصنيف الحبوب
+Harvesting and Processing,Grain hardness,⚖️,Resistance of rice grain to breakage,صلابة الحبوب
+Harvesting and Processing,Grain length,📏,Measurement of grain size,طول الحبة
+Harvesting and Processing,Grain moth,🦋,Moth species damaging stored grains,عثة الحبوب
+Harvesting and Processing,Grain shape,🔶,Physical appearance of rice grain,شكل الحبة
+Harvesting and Processing,Grain silo,🏗️,Large structure used for grain storage,صومعة الحبوب
+Harvesting and Processing,Head rice,🍚,Whole unbroken rice kernels after milling,حبوب الأرز السليمة
+Harvesting and Processing,Hermetic bag,🛍️,Airtight storage bag preventing insect damage,كيس محكم الإغلاق
+Harvesting and Processing,Hermetic storage,🧱,Airtight grain storage to prevent pests,تخزين محكم الإغلاق
+Harvesting and Processing,Hulling Machine,🧱,Machine that removes rice husks mechanically,آلة التقشير  
+Harvesting and Processing,ISO Standards,📘,International norms ensuring process quality,معايير الأيزو  
+Harvesting and Processing,Logistics,📦,Management of transport and storage of rice products,الخدمات اللوجستية  
+Harvesting and Processing,Maintenance,🛠️,Regular servicing of processing equipment,الصيانة  
+Harvesting and Processing,Market Price,💵,Current selling value of rice in the market,سعر السوق  
+Harvesting and Processing,Marketing Strategy,📊,Plan for promoting rice products effectively,استراتيجية التسويق  
+Harvesting and Processing,Milling recovery,📊,Percentage of whole grains after milling,نسبة الحبوب السليمة
+Harvesting and Processing,Moisture content,💧,Amount of water in rice grains,محتوى الرطوبة
+Harvesting and Processing,Mycotoxin,☠️,Toxic compound from storage fungi,سم فطري
+Harvesting and Processing,Packaging Machine,📦,Automatic equipment for filling and sealing bags,آلة التعبئة  
+Harvesting and Processing,Paddy Separator,🪶,Machine separating unhulled grains from brown rice,فاصل الأرز الشعير  
+Harvesting and Processing,Parboiled rice,💦,Rice partially boiled before milling,أرز نصف مسلوق
+Harvesting and Processing,Polished rice,🍚,White rice obtained after full milling,أرز أبيض
+Harvesting and Processing,Polisher,✨,Machine that smooths and whitens rice grains,آلة التلميع  
+Harvesting and Processing,Post-harvest loss,📉,Reduction in quantity or quality after harvest,فاقد ما بعد الحصاد
+Harvesting and Processing,Post-harvest technology,🧠,Techniques for processing and storage improvement,تكنولوجيا ما بعد الحصاد
+Harvesting and Processing,Processing Cost,💰,Total expense of milling and packaging rice,تكلفة المعالجة  
+Harvesting and Processing,Processing Plant,🏭,Facility where rice is milled and packaged,مصنع تجهيز الأرز  
+Harvesting and Processing,Profit Margin,📈,Difference between selling price and production cost,هامش الربح  
+Harvesting and Processing,Protein content,💪,Amount of protein in rice grain,محتوى البروتين
+Harvesting and Processing,Quality assurance,🧾,System ensuring consistent product quality,ضمان الجودة
+Harvesting and Processing,Quality Certification,✅,Official approval for meeting product standards,شهادة الجودة  
+Harvesting and Processing,Quality control,✅,Monitoring standards during production,مراقبة الجودة
+Harvesting and Processing,Quality Control,🧪,Checking rice for purity and standard compliance,ضبط الجودة  
+Harvesting and Processing,Retail Distribution,🛒,Supplying rice to stores and supermarkets,توزيع التجزئة  
+Harvesting and Processing,Rice Beverage,🥛,Drink made from processed rice or fermented grains,مشروب الأرز  
+Harvesting and Processing,Rice Bran Oil,🧴,Oil extracted from rice bran for cooking or cosmetics,زيت نخالة الأرز  
+Harvesting and Processing,Rice Byproducts,🌾,Secondary materials like bran or husk from milling,نواتج الأرز الثانوية  
+Harvesting and Processing,Rice Flour,🍚,Fine powder made by grinding rice grains,دقيق الأرز  
+Harvesting and Processing,Rice Husk Ash,🌋,By-product used in cement or soil amendment,رماد قشرة الأرز  
+Harvesting and Processing,Rice Noodles,🍜,Food product made from rice flour and water,شعيرية الأرز  
+Harvesting and Processing,Rice Paper,📜,Thin edible sheet made from rice starch,ورق الأرز  
+Harvesting and Processing,Rice Residue Management,🌱,Reusing leftover plant materials sustainably,إدارة مخلفات الأرز  
+Harvesting and Processing,Rice Starch,⚗️,Extracted carbohydrate used in food and industry,نشا الأرز  
+Harvesting and Processing,Rice Straw,🌾,Stems left after harvesting used for fodder or crafts,قش الأرز  
+Harvesting and Processing,Rice Vinegar,🍶,Vinegar produced by fermenting rice starch,خل الأرز  
+Harvesting and Processing,Rice weevil,🪲,Major insect pest of stored rice,سوسة الأرز
+Harvesting and Processing,Rice Wine,🍷,Alcoholic beverage made from fermented rice,نبيذ الأرز  
+Harvesting and Processing,Storage humidity,💧,Moisture level in storage environment,رطوبة التخزين
+Harvesting and Processing,Storage pest,🐛,Insects infesting stored rice,آفات التخزين
+Harvesting and Processing,Straw Incorporation,🌿,Mixing rice straw back into the soil,دمج القش في التربة  
+Harvesting and Processing,Straw Management,🚜,Handling or recycling rice straw after harvest,إدارة قش الأرز  
+Harvesting and Processing,Supply chain,🔗,Network from production to consumer,سلسلة الإمداد
+Harvesting and Processing,Supply Chain,🚚,Sequence from rice production to market delivery,سلسلة التوريد  
+Harvesting and Processing,Sustainability Label,🌱,Mark showing eco-friendly production methods,علامة الاستدامة  
+Harvesting and Processing,Temperature control,🌡️,Maintaining stable storage temperature,التحكم في الحرارة
+Harvesting and Processing,Trade Regulation,⚖️,Laws governing rice import and export,قوانين التجارة  
+Harvesting and Processing,Transportation,🚚,Moving rice from farms to markets,النقل
+Harvesting and Processing,Value addition,💰,Enhancing product quality for higher profit,زيادة القيمة المضافة
+Harvesting and Processing,Value Addition,💰,Enhancing rice value through processing or packaging,إضافة قيمة  
+Harvesting and Processing,Waste Reduction,♻️,Minimizing loss and by-products during processing,تقليل الفاقد  
+Harvesting and Processing,Wholesale Trade,🚚,Bulk sale of rice to large buyers,التجارة بالجملة  
+Harvesting and Processing,Basal Application,⬇️🌱,Fertilizer added before or during planting,التسميد الأساسي  
+Harvesting and Processing,Molybdenum,🔬,Needed for nitrogen fixation,الموليبدينوم  
+physiology,Abscisic Acid,🌾🚫,Hormone inducing dormancy and stress response,حمض الأبسيسيك  
+physiology,Absorption,💦🌱,Uptake of water and nutrients by roots,الامتصاص  
+physiology,Auxin,🌱⬆️,Hormone that promotes stem elongation,الأوكسين  
+physiology,Auxins,🌾➡️,Hormones controlling elongation and tropism,الأوكسينات  
+Physiology,Bacteria,🧫,Single-celled organisms, some cause diseases,بكتيريا
+physiology,Bacterial Leaf Streak,🧫🌿,Disease causing streaks on rice leaves,شريط الأوراق البكتيري
+physiology,Blight,🌾🔥,Disease causing rapid death of plant tissues,اللفحة
+physiology,Chlorophyll,💚,Green pigment essential for photosynthesis,الكلوروفيل  
+physiology,Control Measure,🧰,Actions taken to reduce disease impact,إجراءات مكافحة
+physiology,Cytokinin,🌿🌼,Hormone stimulating cell division,السيتوكاينين  
+physiology,Cytokinins,🌸,Hormones stimulating cell division,السيتوكينينات  
+physiology,Deficiency,⚠️🥀,,
+physiology,Diagnosis,🧪,Identifying the nature of a plant disease,تشخيص
+physiology,Disease Resistance,🧬,The ability of a plant to avoid or overcome disease,مقاومة الأمراض
+physiology,Enzyme,🧪,Protein that speeds up biochemical reactions,إنزيم  
+physiology,Ethylene,🍅,Gas hormone controlling fruit ripening,الإيثيلين  
+physiology,Floret,🌼,Small flower that develops into a grain,الزهرة الصغيرة
+physiology,Flower,🌸,Reproductive structure of a plant,الزهرة  
+physiology,Fruit,🍎,Mature ovary containing seeds,الثمرة  
+physiology,Fungi,🍄,Organisms that can infect plants and cause rot,فطريات
+physiology,Gibberellin,🌾📈,Hormone promoting growth and seed germination,الجبريلين  
+physiology,Gibberellins,🌿📈,Hormones promoting stem and seed growth,الجبريلينات  
+physiology,Grain Filling,🍚🌾,Process of starch accumulation in developing grains,امتلاء الحبوب
+physiology,Growth Hormone,🧫,Substance that regulates plant development,هرمون النمو  
+physiology,Immunity,🧠,Plant’s ability to resist infection,مناعة
+physiology,Immunization,💉🌱,Developing resistance through exposure or breeding,التحصين
+physiology,Infection,🩸,The invasion of host tissues by pathogens,عدوى
+physiology,Inoculation,💉🌾,Introducing a pathogen to test plant resistance,التلقيح المرضي
+physiology,Leaf,🍃,Organ where photosynthesis occurs,الورقة  
+physiology,Maturation,🌾🕰️,Final phase of growth when grains harden,النضج
+physiology,Metabolism,🔥🌱,All chemical processes in living cells,الأيض  
+physiology,Nutrient Uptake,🥦,Absorption of minerals by plant roots,امتصاص العناصر الغذائية  
+physiology,Panicle,🌾✨,The flowering head of the rice plant bearing grains,السنبلة
+physiology,Pathogen,🦠,A microorganism that causes disease,مُمْرِض
+physiology,Phloem,🌿🍬,Tissue transporting food through plant,النسيج اللحائي  
+physiology,Photoperiodism,🌅,Response of plants to light duration,تأثير الضوء على النمو  
+physiology,Photosynthesis,🌞🌿,Process where plants make food using sunlight,التمثيل الضوئي  
+physiology,Plant Hormone,🧬🌾,Chemical controlling plant growth,هرمون نباتي  
+physiology,Plant Hormones,🧪🌼,Chemicals regulating plant growth,الهرمونات النباتية  
+physiology,Pollination,🐝,Transfer of pollen from anther to stigma,التلقيح  
+physiology,Respiration,🌬️,Process of releasing energy from food,التنفس  
+physiology,Root System,🌿⬇️,Underground part absorbing water and nutrients,نظام الجذور  
+physiology,Root,🌳,Part of plant absorbing water and nutrients,الجذر  
+physiology,Seed Dormancy,💤🌰,Temporary inactivity of a seed,سبات البذور  
+physiology,Seed,🌰,Embryo of a new plant,البذرة  
+physiology,Seedling,🌿,Young plant grown from a seed,الشتلة  
+physiology,Senescence,🍂,Natural aging process leading to plant death,الشيخوخة النباتية
+physiology,Shoot System,🌾⬆️,Above-ground parts supporting leaves and flowers,النظام الهوائي  
+physiology,Spikelet,🌾🌸,The smallest unit of the rice flower cluster,الزهيرة
+physiology,Stem,🌿,Plant part supporting leaves and flowers,الساق  
+physiology,Stomata,🌿💨,Small openings on leaves for gas exchange,الثغور  
+physiology,Susceptibility,⚠️,The tendency to be affected by a disease,قابلية للإصابة
+physiology,Symptom,👁️,Observable effect of a disease on a plant,عرض مرضي
+physiology,Tillering,🌾🌱,Production of side shoots from the rice plant base,التفريع
+physiology,Tolerance,💪,Ability to endure adverse conditions or disease,التحمل
+physiology,Transpiration,💧🌿,Loss of water vapor from plant leaves,النتح  
+physiology,Tropism,➡️🌿,Directional growth in response to stimuli,الانتحاء  
+physiology,Tungro Virus,🧬🌾,Viral disease transmitted by leafhoppers,فيروس تونجرو
+physiology,Virus,🧬,Microscopic agent causing plant diseases,فيروس
+physiology,Xylem,🌳💧,Tissue transporting water and minerals upward,النسيج الخشبي  
+physiology,🔥,Charcoal used to enhance Soil Science and Fertility,الفحم الحيوي
+Research Methods,Correlation,🔗📈,Relationship between two variables,الارتباط  
+Research Methods,Data Analysis,Abstract,🧾,Brief summary of a research article,الملخص  
+Research Methods,Data Analysis,Academic Tone,🎓,Formal and objective writing style,النبرة الأكاديمية  
+Research Methods,Data Analysis,Appendix,📎,Supplementary material attached to a paper,الملحق  
+Research Methods,Data Analysis,Argumentation,⚖️,Presenting evidence to support a claim,الاستدلال  
+Research Methods,Data Analysis,Axis,📏,Reference line for data in a chart or graph,المحور  
+Research Methods,Data Analysis,Bar Chart,📊,Chart using rectangular bars to compare values,مخطط الأعمدة  
+Research Methods,Data Analysis,Bar Graph,📏📊,Graph comparing quantities by bars,الرسم الشريطي  
+Research Methods,Data Analysis,Bibliography,📖,List of all consulted sources,قائمة المراجع  
+Research Methods,Data Analysis,Caption,💬,Brief explanation under an image or figure,التعليق التوضيحي  
+Research Methods,Data Analysis,Chart,📊,Visual representation of data relationships,المخطط البياني  
+Research Methods,Data Analysis,Citation,📖,Referencing the original source of information,الاقتباس  
+Research Methods,Data Analysis,Coherence,🔗,Logical connection between ideas,الاتساق  
+Research Methods,Data Analysis,Cohesion,🪢,Use of linking words for flow,الترابط  
+Research Methods,Data Analysis,Conclusion,✅,Final summary and implications of the study,الاستنتاج  
+Research Methods,Data Analysis,Conference Paper,🏛️,Research presented at a professional meeting,ورقة مؤتمر  
+Research Methods,Data Analysis,Copyright,🧾,Legal protection for original research,حقوق النشر  
+Research Methods,Data Analysis,Data Interpretation,💡,Explaining what the data indicate,تفسير البيانات  
+Research Methods,Data Analysis,Data Label,🏷️,Text showing specific values on charts,تسمية البيانات  
+Research Methods,Data Analysis,Data Table,📋,Organized arrangement of data in rows and columns,جدول البيانات  
+Research Methods,Data Analysis,Data Visualization,📊🎨,Creating graphics to represent research data,تصوير البيانات  
+Research Methods,Data Analysis,Dataset,🗃️,Collection of raw or processed data,مجموعة بيانات  
+Research Methods,Data Analysis,Discussion Section,💬,Interpretation of research outcomes,قسم المناقشة  
+Research Methods,Data Analysis,Discussion,🧠,Interpretation and explanation of findings,المناقشة  
+Research Methods,Data Analysis,DOI,🔗,Digital identifier for research publications,المعرف الرقمي  
+Research Methods,Data Analysis,Draft,✍️,First version of a written text,المسودة  
+Research Methods,Data Analysis,Editing,🧠,Improving structure and clarity of writing,التحرير  
+Research Methods,Data Analysis,Ethics Statement,⚖️,Declaration of research integrity and approval,بيان الأخلاقيات  
+Research Methods,Data Analysis,Figure Caption,🗒️,Description below a figure,شرح الشكل  
+Research Methods,Data Analysis,Figure Legend,🖼️,Description explaining chart or graph symbols,شرح الشكل  
+Research Methods,Data Analysis,Figure,🖼️,Illustration or visual aid in reports,الشكل التوضيحي  
+Research Methods,Data Analysis,Graph,📈,Diagram showing variable relationships,الرسم البياني  
+Research Methods,Data Analysis,Histogram,📊📦,Graph showing frequency distribution,المدرج التكراري  
+Research Methods,Data Analysis,Impact Factor,⭐,Measure of a journal’s importance,معامل التأثير  
+Research Methods,Data Analysis,Infographic,🧠📈,Visual summary combining text and data,رسم معلوماتي  
+Research Methods,Data Analysis,Introduction,📘,Opening section presenting background and aim,المقدمة  
+Research Methods,Data Analysis,Journal Article,📖,Published paper in an academic journal,مقال علمي  
+Research Methods,Data Analysis,Journal,📚,Periodical for publishing research papers,المجلة العلمية  
+Research Methods,Data Analysis,Keywords,🔍,Important terms describing study content,الكلمات المفتاحية  
+Research Methods,Data Analysis,Legend,🗂️,Key explaining symbols or colors in a chart,المفتاح التوضيحي  
+Research Methods,Data Analysis,Line Graph,📉,Graph showing changes over time,الرسم الخطي  
+Research Methods,Data Analysis,Manuscript,📄,Document submitted for publication,المخطوطة  
+Research Methods,Data Analysis,Mean,➗,Average value of data set,المتوسط الحسابي  
+Research Methods,Data Analysis,Median,📏,Middle value in ordered data,الوسيط  
+Research Methods,Data Analysis,Metadata,🧾,Information describing data characteristics,بيانات وصفية  
+Research Methods,Data Analysis,Methodology,⚙️,Description of research design and procedures,المنهجية  
+Research Methods,Data Analysis,Mode,🔁,Most frequently occurring value,المنوال  
+Research Methods,Data Analysis,Open Access,🌐,Freely available published research,الوصول المفتوح  
+Research Methods,Data Analysis,Outline,📄,Planned structure of writing,المخطط  
+Research Methods,Data Analysis,Paraphrasing,♻️,Restating ideas using new words,إعادة الصياغة  
+Research Methods,Data Analysis,Peer Review,👩‍🏫🔍,Evaluation by experts before publication,مراجعة الأقران  
+Research Methods,Data Analysis,Pie Chart,🥧,Circular graph divided into proportional segments,الرسم الدائري  
+Research Methods,Data Analysis,Plagiarism,🚫,Using others’ work without credit,الانتحال العلمي  
+Research Methods,Data Analysis,Poster Presentation,🖼️,Visual summary of research for display,عرض ملصق بحثي  
+Research Methods,Data Analysis,Proofreading,🖋️,Checking for grammar and spelling mistakes,التدقيق اللغوي  
+Research Methods,Data Analysis,Publication,📰,Process of making research results public,النشر  
+Research Methods,Data Analysis,Reference List,📚,Alphabetical list of all cited sources,قائمة المراجع  
+Research Methods,Data Analysis,Reference,📚,Source cited in the research paper,المرجع  
+Research Methods,Data Analysis,Report,🧾,Formal summary of research findings,التقرير  
+Research Methods,Data Analysis,Research Repository,📂,Online archive for storing research papers,مستودع بحثي  
+Research Methods,Data Analysis,Results Section,📊,Part describing findings of a study,قسم النتائج  
+Research Methods,Data Analysis,Results,📊,Section presenting analyzed data,النتائج  
+Research Methods,Data Analysis,Revision,🔍,Process of improving written content,المراجعة  
+Research Methods,Data Analysis,Scale,📐,System of measurement used in graphs,المقياس  
+Research Methods,Data Analysis,Scatter Plot,🔘📈,Graph showing correlation between variables,مخطط التبعثر  
+Research Methods,Data Analysis,Scientific Writing,✍️,Formal style for reporting research,الكتابة العلمية  
+Research Methods,Data Analysis,Software Tool,💻,Program used for analysis or visualization,أداة برمجية  
+Research Methods,Data Analysis,Standard Deviation,📐,Measure of data spread or variability,الانحراف المعياري  
+Research Methods,Data Analysis,Statistical Summary,📉,Numerical overview of data results,ملخص إحصائي  
+Research Methods,Data Analysis,Summarizing,🪶,Condensing main ideas briefly,التلخيص  
+Research Methods,Data Analysis,Supplementary Material,📎,Extra content supporting the main paper,مواد إضافية  
+Research Methods,Data Analysis,Supporting Details,📚,Facts or examples explaining the main idea,التفاصيل الداعمة  
+Research Methods,Data Analysis,Table Caption,🏷️,Brief explanation above or below a table,عنوان الجدول  
+Research Methods,Data Analysis,Table,📋,Organized arrangement of data in rows and columns,الجدول  
+Research Methods,Data Analysis,Thesis Statement,🧭,Main idea or argument of an essay,الجملة الرئيسية  
+Research Methods,Data Analysis,Title,🏷️,Name describing the content of a table or figure,العنوان  
+Research Methods,Data Analysis,Topic Sentence,📝,Sentence stating the main idea of a paragraph,الجملة الموضوعية  
+Research Methods,Data Analysis,Transition Words,🔄,Words connecting sentences and ideas,كلمات الربط  
+Research Methods,Data Analysis,Trend Line,📉,Line indicating data direction or tendency,خط الاتجاه  
+Research Methods,Data Analysis,💻📉,Processing and interpreting collected data,تحليل البيانات  
+Research Methods,Data Collection,📝📊,Gathering information for research,جمع البيانات  
+Research Methods,Experiment,🧪🌾,Controlled test to study cause and effect,التجربة  
+Research Methods,Experimental Design,📊🧠,Plan for conducting a scientific test,تصميم التجربة  
+Research Methods,Hypothesis,💭📜,Proposed explanation to be tested,الفرضية  
+Research Methods,Interview,🗣️,Face-to-face data collection method,المقابلة  
+Research Methods,Questionnaire,📋,Tool for collecting survey data,الاستبيان  
+Research Methods,Regression,📉,Statistical method for predicting outcomes,الانحدار  
+Research Methods,Significance Level,📊⭐,Probability threshold for hypothesis testing,مستوى الدلالة  
+Research Methods,Statistical Test,📈🧮,Procedure for evaluating hypotheses,الاختبار الإحصائي  
+Rice Cultivation Practices,Direct Seeding,🌾🎯,Sowing seeds directly in the field,الزراعة المباشرة  
+Rice Cultivation Practices,Disease Management,🦠🌾,Preventing and controlling rice diseases,مكافحة الأمراض  
+Rice Cultivation Practices,Fertilization,🌿💊,Applying nutrients to improve growth,التسميد  
+Rice Cultivation Practices,Harvesting,🌾🔪,Cutting mature rice plants,الحصاد  
+Rice Cultivation Practices,Irrigation,💧🚿,Providing water to rice fields,الري  
+Rice Cultivation Practices,Land Preparation,🌱🛠️,Plowing and leveling fields before planting,تحضير الأرض  
+Rice Cultivation Practices,Monitoring Growth,👀🌾,Regularly checking plant health and growth,مراقبة النمو  
+Rice Cultivation Practices,Nursery Preparation,🏡🌱,Preparing seedbeds for seedlings,تحضير المشاتل  
+Rice Cultivation Practices,Paddy Field,🌾💧,Flooded field used for growing rice,حقل الأرز  
+Rice Cultivation Practices,Plant Density,🌱📏,Number of plants per area unit,كثافة الزراعة  
+Rice Cultivation Practices,Plant Spacing,↔️🌱,Maintaining optimal distance between plants,تباعد النباتات  
+Rice Cultivation Practices,Post-Harvest Storage,🏠🌾,Storing grains to maintain quality,تخزين ما بعد الحصاد  
+Rice Cultivation Practices,Diseases and Pests,🛡️🐛,Controlling insects and diseases,مكافحة الآفات  
+Rice Cultivation Practices,Rice Variety,🌿,Type of rice with specific traits,صنف الأرز  
+Rice Cultivation Practices,Seed Selection,🌾✅,Choosing high-quality seeds for planting,اختيار البذور  
+Rice Cultivation Practices,Seedling Nursery,🏡,Area where rice seedlings are raised,مشاتل الأرز  
+Rice Cultivation Practices,Sowing,🌱,Planting seeds in fields,الزراعة  
+Rice Cultivation Practices,Tillage,🚜,Preparation of soil before planting,حرث التربة  
+Rice Cultivation Practices,Top Dressing,🌿💨,Applying fertilizer to growing plants,التسميد السطحي  
+Rice Cultivation Practices,Transplanting,👩‍🌾🌾,Moving seedlings from nursery to main field,نقل الشتلات  
+Rice Cultivation Practices,Weed Control,🌿🚫,Removing unwanted plants from rice fields,مكافحة الحشائش  
+Rice Cultivation Practices,Weeding,🪴,Removing unwanted plants from fields,إزالة الحشائش  
+Rice Cultivation Practices,Yield,📈,Amount of rice produced per unit area,غلة المحصول  
+Diseases and Pests,Aphid,🪰,Small insect feeding on plant sap,المن
+Diseases and Pests,Armyworm,🐛🌾,Caterpillar feeding on leaves in groups,الدودة الجندية  
+Diseases and Pests,Armyworms,🐛🌾,Caterpillars feeding on leaves in groups,الديدان العسكرية
+Diseases and Pests,Bacterial Control,💊🌾,Use of bactericides to limit bacterial infections,مكافحة البكتيريا
+Diseases and Pests,Bacterial Leaf Blight,Bacteria🦠🌾,Bacterial infection causing yellowing and wilting,ذبول الأوراق البكتيري
+Diseases and Pests,Bacterial leaf blight,🧫,Bacterial disease causing leaf wilting,اللفحة البكتيرية
+Diseases and Pests,Biological control,🐞,Use of natural enemies to reduce pests,المكافحة الحيوية
+Diseases and Pests,Biological Control,🦋🪲,Using natural predators or parasites to manage pests,المكافحة البيولوجية
+Diseases and Pests,Bio-pesticide,♻️,Natural pesticide from biological sources,مبيد حيوي
+Diseases and Pests,Bird damage,🐦,Grain loss caused by feeding birds,ضرر الطيور
+Diseases and Pests,Blast-resistant variety,🌾,Rice variety resistant to blast disease,صنف مقاوم للّفحة
+Diseases and Pests,Brown planthopper,🪰,Major rice pest that sucks plant sap,نطاطات الأرز البنية
+Diseases and Pests,Brown Planthopper,🪲🌾,Insect sucking sap and transmitting viruses,اليعسوب البني
+Diseases and Pests,Brown Spot,🟤,Fungal disease causing brown spots on leaves,البقع البنية  
+Diseases and Pests,Chemical Control,💊🪲,Using pesticides to control pests and diseases,المكافحة الكيميائية
+Diseases and Pests,Chemical control,🧴,Use of pesticides to manage pests,المكافحة الكيميائية
+Diseases and Pests,Cultural control,🌾,Agricultural practices reducing pest risks,المكافحة الزراعية
+Diseases and Pests,Cultural Practices,🌾🛠️,Agronomic methods to reduce pest incidence,الممارسات الزراعية
+Diseases and Pests,Disease incidence,📊,Percentage of plants infected,نسبة الإصابة بالمرض
+Diseases and Pests,Disease severity,📉,Degree of damage caused by disease,شدة الإصابة
+Diseases and Pests,Economic threshold,💰,Pest level at which control becomes necessary,الحد الاقتصادي للضرر
+Diseases and Pests,Entomopathogenic fungi,🍄,Fungi used to kill insect pests,فطريات ممرضة للحشرات
+Diseases and Pests,Epidemiology,🧬,Study of disease spread and control,علم الوبائيات
+Diseases and Pests,False smut,🌾,Fungal disease forming green spore balls,مرض التفحم الكاذب
+Diseases and Pests,False Smut,🍄🌾,Fungal disease forming greenish spore balls,السناج الكاذب  
+Diseases and Pests,Field Inspection,🧑‍🌾🔎,Examining crops for pest damage,تفتيش الحقول  
+Diseases and Pests,Forecasting,📊🌾,Predicting pest outbreaks using data and models,التنبؤ بالآفات
+Diseases and Pests,Fungal Control,🧴🌾,Use of fungicides to prevent fungal diseases,مكافحة الفطريات
+Diseases and Pests,Fungal Sheath Rot,⚪🍂,Fungal infection causing decay of leaf sheath,تعفن غلاف الورقة الفطري  
+Diseases and Pests,Fungicide resistance,⚗️,Reduced sensitivity of fungi to fungicides,مقاومة الفطريات للمبيدات
+Diseases and Pests,Fungicide,🧪🍄,Chemical used to control fungal diseases,مبيد فطري  
+Diseases and Pests,Golden Apple Snail,🐌🌾,Mollusk feeding on young rice seedlings,حلزون التفاح الذهبي
+Diseases and Pests,Grain Smut,🌾🖤,Fungal disease producing black spores in grains,عفن الحبوب  
+Diseases and Pests,Green leafhopper,🐞,Insect transmitting viral diseases in rice,نطاط الأوراق الأخضر
+Diseases and Pests,Green Leafhopper,🟢🦗,Insect that transmits viral diseases,القافز الأخضر للأوراق  
+Diseases and Pests,Herbicide,🌿❌,Chemical used to kill weeds,مبيد أعشاب  
+Diseases and Pests,Host plant resistance,🧫,Natural ability of plant to resist diseases,مقاومة العائل
+Diseases and Pests,Host Plant,🌾🦠,Plant that supports pest development,النبات العائل  
+Diseases and Pests,Infestation,⚠️,Large number of pests damaging crops,غزو حشري  
+Diseases and Pests,Insect pest,🦗,Insect species harmful to crops,حشرة ضارة
+Diseases and Pests,Insect,🐜,Small arthropod that may damage crops,حشرة  
+Diseases and Pests,Insecticide,🪰,Chemical used to control insects,مبيد حشري  
+Diseases and Pests,Integrated Diseases and Pests,♻️🪲,Combining biological, cultural, and chemical control,الإدارة المتكاملة للآفات
+Diseases and Pests,Integrated Diseases and Pests,🐞,Combining methods for sustainable pest control,الإدارة المتكاملة للآفات
+Diseases and Pests,Leaf Blast,🔥🍃,Fungal lesions on leaves,انفجار الورقة  
+Diseases and Pests,Leaf Folder,🪱🌾,Larvae that fold and feed on leaves,طيّ الأوراق
+Diseases and Pests,Light trap,💡,Device to attract and trap insects,مصيدة ضوئية
+Diseases and Pests,Mechanical control,⚙️,Using tools or devices to remove pests,المكافحة الميكانيكية
+Diseases and Pests,Mite,🕷️,Microscopic pest infesting rice plants,العث
+Diseases and Pests,Monitoring,👀🌾,Regularly checking fields for pest/disease presence,المراقبة
+Diseases and Pests,Natural predator,🐸,Organism that preys on pests,مفترس طبيعي
+Diseases and Pests,Nematocide,🪱☠️,Chemical used to kill nematodes,مبيد ديدان  
+Diseases and Pests,Parasite,🪰,Organism living on another for survival,الطفيل  
+Diseases and Pests,Parasitoid,🐝,Insect that lays eggs inside pests,طفيلي حشري
+Diseases and Pests,Pest infestation,🐛,Presence of a pest population in a field,إصابة بالآفات
+Diseases and Pests,Pest monitoring,🔍,Regular observation to detect pest activity,مراقبة الآفات
+Diseases and Pests,Pest resurgence,🔄,Reappearance of pests after control,عودة الآفة
+Diseases and Pests,Pest,🐛,Organism that damages crops,آفة زراعية
+Diseases and Pests,Pesticide residue,🧪,Chemical traces left after pesticide use,بقايا المبيدات
+Diseases and Pests,Pesticide,💀🧴,Chemical used to kill pests,مبيد آفات  
+Diseases and Pests,Pheromone trap,🧴,Trap using insect sex attractants,مصيدة فرمونية
+Diseases and Pests,Pheromone Traps,🪤🌾,Using chemical lures to trap pests,مصائد الفيرومون
+Diseases and Pests,Planthopper,🦗,Insect pest sucking plant sap,نطاطات النبات  
+Diseases and Pests,Planthoppers,🐜🌾,Sap-sucking insects transmitting viruses,النطاط
+Diseases and Pests,Predator,🦎,Animal that feeds on other harmful species,المفترس  
+Diseases and Pests,Quarantine,🚫🌍,Restriction to prevent pest spread,الحجر الزراعي  
+Diseases and Pests,Red Rice,🔴🌾,Weedy rice competing with cultivated rice,الأرز الأحمر  
+Diseases and Pests,Resistance,🧬🛡️,Pests’ ability to survive chemical control,مقاومة  
+Diseases and Pests,Resistant Varieties,🌱🛡️,Planting rice strains resistant to pests/diseases,الأصناف المقاومة
+Diseases and Pests,Resistant variety,🌱,Crop type with genetic pest resistance,صنف مقاوم
+Diseases and Pests,Resistant Variety,🌾🛡️,Rice type bred to withstand diseases,صنف مقاوم  
+Diseases and Pests,Rice blast,💥,Fungal disease affecting leaves and panicles,مرض اللفحة
+Diseases and Pests,Rice Blast,🔥🌾,Fungal disease causing leaf and stem lesions,مرض انفجار الأرز
+Diseases and Pests,Rice bug,🐜,Sucks sap from rice grains and panicles,بق الأرز
+Diseases and Pests,Rice Bug,🪲,Insect pest feeding on developing grains,بق الأرز  
+Diseases and Pests,Rice gall midge,🪶,Insect causing gall formation on rice shoots,ذبابة أورام الأرز
+Diseases and Pests,Rice grassy stunt,🌿,Viral disease causing stunted growth,مرض التقزم العشبي
+Diseases and Pests,Rice hispa,🐞,Beetle that scrapes rice leaves,خنفساء الأرز
+Diseases and Pests,Rice leaf folder,🍃,Pest that folds and feeds on leaves,حفار أوراق الأرز
+Diseases and Pests,Rice Mite,🕷️,Tiny arthropods feeding on rice leaves,العنكبوت الأرز  
+Diseases and Pests,Rice Root Nematode,🪱,Microscopic worms attacking rice roots,ديدان جذور الأرز  
+Diseases and Pests,Rice stem borer,🪲,Insect larvae that bore into rice stems,حفار ساق الأرز
+Diseases and Pests,Rice Tungro Virus,🦠🌾,Viral disease causing stunted growth and yellowing,فيروس تونجرو للأرز
+Diseases and Pests,Rice Water Weevil,💧🐜,Insect that damages roots in waterlogged fields,خنفساء مياه الأرز  
+Diseases and Pests,Rice Weevil,🐞🌾,Grain pest damaging stored rice,خنفساء الأرز
+Diseases and Pests,Rodent damage,🐭,Harm caused by rats and mice in fields,ضرر القوارض
+Diseases and Pests,Rodenticide,🐭☠️,Chemical used to control rodents,مبيد قوارض  
+Diseases and Pests,Root-Knot Nematode,🧬🌱,Worm causing galls on rice roots,نيماتودا تعقد الجذور  
+Diseases and Pests,Safety interval,⏳,Time between pesticide application and harvest,فترة الأمان
+Diseases and Pests,Sanitation,🧹🌾,Removing infected plant debris to reduce disease,النظافة الزراعية
+Diseases and Pests,Scouting,🚶‍♂️🌾,Field inspection to assess pest/disease levels,الجولة التفقدية
+Diseases and Pests,Seed Treatment,💧🌾,Treating seeds with chemicals before sowing,معالجة البذور
+Diseases and Pests,Seedling Blight,🌱💀,Fungal disease killing young seedlings,ذبول الشتلات  
+Diseases and Pests,Sheath blight,🍄,Fungal disease attacking leaf sheaths,مرض لفحة الغمد
+Diseases and Pests,Sheath Blight,🧫🌾,Fungal infection causing lesions on leaf sheaths,تعفن الأغلفة
+Diseases and Pests,Sheath Rot,🛡️💀,Fungal disease of rice leaf sheath,تعفن الغلاف  
+Diseases and Pests,Stem Borer,🪰🌾,Larvae that bore into rice stems,حفار الساق
+Diseases and Pests,Stem Borers,Caterpillar🪱🌾,Larvae boring into rice stems causing dead hearts,ثقوب الساق
+Diseases and Pests,Stem Rot,🌾💀,Fungal decay of rice stems,تعفن الساق  
+Diseases and Pests,Threshold Level,⚖️🪲,Pest population level triggering control measures,مستوى العتبة
+Diseases and Pests,Thrips,🪳,Tiny insects damaging leaves and buds,التربس
+Diseases and Pests,Trap Cropping,🌾🎯,Planting specific crops to attract pests away,الزراعة الجاذبة
+Diseases and Pests,Trap cropping,🌿,Growing specific plants to attract pests,زراعة المصائد
+Diseases and Pests,Trap,🪤,Device used to catch pests,فخ  
+Diseases and Pests,Tungro virus,🦠,Viral disease transmitted by leafhoppers,فيروس تونغرو
+Diseases and Pests,Vector,🦟,Organism that transmits diseases,ناقل المرض  
+Diseases and Pests,Viral Control,🧪🌾,Using resistant varieties and vector management,مكافحة الفيروسات
+Diseases and Pests,Weed management,🌱,Strategies to control unwanted plants,إدارة الأعشاب الضارة
+Diseases and Pests,Weed Management,🌿✂️,Controlling unwanted plants competing with rice,إدارة الأعشاب الضارة
+Diseases and Pests,Whitebacked Planthopper,⚪🦗,Insect sucking sap from rice plants,قافز الورقة الأبيض الخلف  
+Diseases and Pests,🌍,Contamination of air, soil, or water,تلوث بيئي
+Diseases and Pests,🐛,Managing harmful insects or organisms,مكافحة الآفات
+Fertilization and Nutrient Management,Balanced Fertilization,⚖️🌾,Applying nutrients in proper ratios,التسميد المتوازن  
+Fertilization and Nutrient Management,Fertilizer Efficiency,📈🌾,Maximizing crop response to applied nutrients,كفاءة الأسمدة  
+Fertilization and Nutrient Management,Integrated Nutrient Management,♻️🌾,Combining organic and inorganic fertilizers,الإدارة المتكاملة للمغذيات  
+Fertilization and Nutrient Management,Nutrient Deficiency,❌🌾,Symptoms caused by lack of essential nutrients,نقص المغذيات  
+Fertilization and Nutrient Management,Nutrient Toxicity,☠️🌾,Damage caused by excessive fertilizer application,سمية المغذيات  
+Fertilization and Nutrient Management,Seed Treatment Fertilizer,🌱💊,Applying nutrients to seeds before planting,تسميد البذور  
+Fertilization and Nutrient Management,Slow-release Fertilizer,🕰️🌾,Fertilizer that releases nutrients gradually,الأسمدة البطيئة  
+Fertilization and Nutrient Management,Slow-release Urea,🕰️💨,Urea formulated to reduce nitrogen loss,اليوريا البطيئة  
+Fertilization and Nutrient Management,Split Application,⏱️🌾,Dividing fertilizer doses over time,التسميد المقسم  
+Fertilization and Nutrient Management,Topdressing,⬆️🌾,Applying fertilizer to growing crops,الرش السطحي  
+Fertilization and Nutrient Management,Water-soluble Fertilizer,💧🧪,Fertilizer that dissolves in irrigation water,الأسمدة القابلة للذوبان  
+Genetics and Breeding,Allele,⚛️,Different forms of a gene,الأليل  
+Genetics and Breeding,Backcross,🔁,Crossing hybrid with one parent type,التهجين العكسي  
+Genetics and Breeding,Bioinformatics,💻🧬,Analysis of biological data using computers,المعلوماتية الحيوية  
+Genetics and Breeding,Biotechnology,🧪🌿,Use of technology to modify organisms,التقنية الحيوية  
+Genetics and Breeding,Chromosome,🧬📊,Structure carrying genetic information,الكروموسوم  
+Genetics and Breeding,Crossbreeding,🔀,Breeding plants from different varieties,التزاوج بين السلالات  
+Genetics and Breeding,DNA,🧬,Molecule containing genetic code,الحمض النووي  
+Genetics and Breeding,Dominant Trait,👑,Trait that masks another in hybrids,الصفة السائدة  
+Genetics and Breeding,Gene Expression,🎛️,Process by which a gene produces its product,التعبير الجيني
+Genetics and Breeding,Gene Mapping,🗺️,Locating genes on chromosomes,رسم خريطة الجينات  
+Genetics and Breeding,Gene,🧫,Unit of heredity controlling traits,الجين  
+Genetics and Breeding,Genetic Diversity,🌾🌈,Variation of genes within a population,التنوع الجيني  
+Genetics and Breeding,Genetic Engineering,⚙️🧬,Direct manipulation of an organism’s genes,الهندسة الوراثية  
+Genetics and Breeding,Genetic Variation,🔄,Differences among individuals in genes,التنوع الجيني  
+Genetics and Breeding,Genetics,🧬,Study of heredity and variation in organisms,علم الوراثة  
+Genetics and Breeding,Genome Mapping,🗺️🧬,Identifying positions of genes in DNA,رسم خريطة الجينوم  
+Genetics and Breeding,Genome,📚,The complete set of genes in an organism,الجينوم
+Genetics and Breeding,Genotype,🧠,Genetic makeup of an organism,الطراز الجيني  
+Genetics and Breeding,Germplasm,🧊🌱,Genetic material used for breeding and conservation,المادة الوراثية
+Genetics and Breeding,Hybrid Vigor,💪🌾,Increased performance in hybrid plants,قوة الهجين  
+Genetics and Breeding,Hybrid,🌱🧬,Offspring from crossbreeding two varieties,الهجين  
+Genetics and Breeding,Hybridization,🌾💞,Crossing two plants to combine traits,التهجين  
+Genetics and Breeding,Inheritance,📜,Passing traits from parents to offspring,الوراثة  
+Genetics and Breeding,Marker Gene,🏷️🧫,Gene used to identify specific traits,الجين المحدد  
+Genetics and Breeding,Marker-Assisted Selection,🧫🎯,Using genetic markers to aid breeding,الانتخاب بمساعدة العلامات  
+Genetics and Breeding,Mendelian Law,📚,Principles explaining inheritance patterns,قانون مندل  
+Genetics and Breeding,Molecular Breeding,🔬🌾,Using DNA technology in selection,التحسين الوراثي الجزيئي  
+Genetics and Breeding,Molecular Marker,🧪,DNA sequence used to identify genes,العلامة الجزيئية  
+Genetics and Breeding,Mutation,⚡,Change in genetic sequence,الطفرة  
+Genetics and Breeding,Phenotype,👀,Observable characteristics of an organism,الطراز الظاهري  
+Genetics and Breeding,Pure Line,🧫🌾,Genetically uniform plant population,السلالة النقية  
+Genetics and Breeding,Recessive Trait,🌱,Trait hidden by a dominant gene,الصفة المتنحية  
+Genetics and Breeding,Recombination,🔄🧬,Exchange of genes between chromosomes,إعادة التركيب  
+Genetics and Breeding,RNA,🧫,Molecule involved in protein synthesis,الحمض النووي الريبي  
+Genetics and Breeding,Seed Bank,🏦🌱,Storage of seeds for conservation,بنك البذور  
+Genetics and Breeding,Selection,🎯,Choosing plants with desirable traits,الانتخاب  
+Genetics and Breeding,Selective Breeding,🎯,Choosing parents with desired traits,الانتقاء الوراثي  
+Genetics and Breeding,Trait,🪴,Specific feature or characteristic of a plant,الصفة
+Genetics and Breeding,Transgenic Plant,🌿⚙️,Plant containing foreign genes,النبات المعدل وراثيًا  
+Genetics and Breeding,Transgenic Rice,🌾🧫,Rice with inserted foreign genes,الأرز المعدل وراثيًا  
+Genetics and Breeding,Transgenic,🌾🧬,Organism containing genes from another species,معدل وراثيًا
+Genetics and Breeding,Word,Icon,Description,Arabic Meaning
+Processing and Quality,Aroma,👃,Assessing fragrance of rice,الرائحة  
+Processing and Quality,Broken Grain,💔,Percentage of broken rice grains,الحبوب المكسورة  
+Processing and Quality,Color,🎨,Assessing rice grain color quality,اللون  
+Processing and Quality,Contaminant Removal,🚫,Eliminating foreign particles from rice,إزالة الشوائب  
+Processing and Quality,Foreign Matter,🗑️,Presence of dust, stones, or husk,المواد الغريبة
+Processing and Quality,Grading,📊,Sorting rice based on size and quality,الفرز  
+Processing and Quality,Hulling,🟫,Removing the husk from rice,إزالة القشرة  
+Processing and Quality,Moisture Content,💧%,Water percentage in rice,محتوى الرطوبة  
+Processing and Quality,Nutrition,🥗,Evaluating vitamins, proteins, and minerals,القيمة الغذائية
+Processing and Quality,Parboiling,💧🔥,Steaming rice before milling,السلق الجزئي  
+Processing and Quality,Polishing,✨,Smoothing rice grains for appearance,تلميع الأرز  
+Processing and Quality,Quality Assessment,📝,Evaluating rice for appearance and nutrition,تقييم الجودة  
+Processing and Quality,Sorting,🔍,Separating rice grains by characteristics,الترتيب  
+Processing and Quality,Storage,🏠,Keeping rice safe and fresh,التخزين  
+Processing and Quality,Texture,🪵,Evaluating hardness or softness of rice,الملمس  
+Processing and Quality,Traceability,🔗,Tracking rice from field to consumer,قابلية التتبع  
+Water and Irrigation Management,Alternate Flooding,🌊↔️,Switching between flooded and non-flooded conditions,الري بالتناوب الجزئي  
+Water and Irrigation Management,Alternate Wetting and Drying,🌱💦,Intermittent irrigation to save water and reduce methane,الري المتقطع  
+Water and Irrigation Management,Canal Irrigation,🏞️🛤️,Delivering water through canals to fields,الري بالقنوات  
+Water and Irrigation Management,Check Basin,🟦🌾,Small field compartment for Water and Irrigation Management,حوض التحقق  
+Water and Irrigation Management,Check Dams,🏞️🛑,Small structures to regulate water flow,سدود صغيرة للتحكم بالمياه  
+Water and Irrigation Management,Continuous Flooding,🌊🌾,Maintaining a constant water layer during early growth,الفيضان المستمر  
+Water and Irrigation Management,Controlled Irrigation,⚖️💧,Applying water precisely according to crop needs,الري المتحكم فيه  
+Water and Irrigation Management,Drainage,🚰🌾,Removing excess water to prevent stagnation,تصريف المياه  
+Water and Irrigation Management,Drip Irrigation,💧➡️🌱,Delivering water directly to plant roots,الري بالتنقيط  
+Water and Irrigation Management,Drought Management,☀️🚱,Strategies to cope with limited water supply,إدارة الجفاف  
+Water and Irrigation Management,Evapotranspiration,🌞💨,Water loss from soil and plant surfaces,النتح والبخر  
+Water and Irrigation Management,Field Bunding,🧱🌾,Creating raised borders to retain water in paddies,تكوين الحواجز في الحقل  
+Water and Irrigation Management,Field Capacity,🌱⚖️,Amount of water soil can hold after drainage,السعة الحقلية  
+Water and Irrigation Management,Field Leveling,🛠️🌾,Evening out fields to ensure uniform water distribution,تسوية الحقل  
+Water and Irrigation Management,Field Levelling,📐🌾,Leveling land to ensure uniform water distribution,تسوية الحقل  
+Water and Irrigation Management,Flood Irrigation,🌊,Entire field flooded with water,الري بالغمر  
+Water and Irrigation Management,Furrow Irrigation,🧱💦,Water flows in channels between crop rows,الري بالأخاديد  
+Water and Irrigation Management,Groundwater,💧🌍,Water stored beneath Earth's surface,المياه الجوفية  
+Water and Irrigation Management,Hydrological Cycle,🔄💧,Continuous movement of water on Earth,الدورة الهيدرولوجية  
+Water and Irrigation Management,Irrigation Canal,🚜💦,Man-made channel for delivering water,قناة الري  
+Water and Irrigation Management,Irrigation Efficiency,⚡💦,Maximizing yield per unit of water used,كفاءة الري  
+Water and Irrigation Management,Irrigation Scheduling,⏰💦,Planning timing and frequency of irrigation,جدولة الري  
+Water and Irrigation Management,Levee,🛤️💧,Raised embankment to retain or control water,السدة  
+Water and Irrigation Management,Percolation,💧⬇️,Movement of water through soil layers,التسرب  
+Water and Irrigation Management,Rainfed Cultivation,☔🌾,Relying on natural rainfall for water,الزراعة المعتمدة على الأمطار  
+Water and Irrigation Management,Rainwater Harvesting,🌧️💧,Collecting rainwater for crop irrigation,تجميع مياه الأمطار  
+Water and Irrigation Management,Runoff,🏃💧,Water flowing over the land surface,الجريان السطحي  
+Water and Irrigation Management,Soil Moisture Sensor,🧪🌱,Device to measure soil water content,مستشعر رطوبة التربة  
+Water and Irrigation Management,Sprinkler Irrigation,🌧️🌾,Spraying water over crops as rain,الري بالرش  
+Water and Irrigation Management,Sprinkler System,🌧️🌾,Sprays water through the air over crops,نظام الرش  
+Water and Irrigation Management,Subsurface Irrigation,🌱💦,Applying water below soil surface for efficiency,الري تحت السطحي  
+Water and Irrigation Management,Surface Water,🏞️,Water from rivers, lakes, or ponds,المياه السطحية
+Water and Irrigation Management,Tube Well Irrigation,⛏️💧,Using groundwater pumped via wells,الري بالآبار  
+Water and Irrigation Management,Water Conservation,💡💧,Techniques to reduce water wastage,الحفاظ على المياه  
+Water and Irrigation Management,Water Depth,📏💧,Controlling water height for different growth stages,عمق المياه  
+Water and Irrigation Management,Water Efficiency,📈💧,Using minimal water for maximum yield,كفاءة استخدام المياه  
+Water and Irrigation Management,Water Level Monitoring,📏💧,Measuring water depth to control irrigation,مراقبة مستوى المياه  
+Water and Irrigation Management,Water Logging,🌊🚫,Excess water prevents air in soil,تغدق المياه  
+Water and Irrigation Management,Water Measurement,📏💧,Using devices to monitor water applied,قياس المياه  
+Water and Irrigation Management,Water Quality,🧪💧,Assessing salinity and contamination of irrigation water,جودة المياه  
+Water and Irrigation Management,Water Source,💧🏞️,Origin of water for paddy fields,مصدر المياه  
+Water and Irrigation Management,Water Table,📉,Level below ground where soil is saturated,مستوى الماء الأرضي  
+Water and Irrigation Management,Water Use Efficiency,📈💧,Maximizing crop yield per unit of water used,كفاءة استخدام المياه  
+Water and Irrigation Management,Waterlogging Prevention,🚫🌊,Avoiding excess water that damages roots,منع ركود المياه  
+Water and Irrigation Management,Wilting Point,🥀,Moisture level when plants start to wilt,نقطة الذبول  
+Soil Science and Fertility,Boron,🧬🌼,Supports flower and fruit formation,البورون  
+Soil Science and Fertility,Calcium,🧱,Strengthens plant cell walls,الكالسيوم  
+Soil Science and Fertility,Clay,🧱,Very fine soil particles retaining water,الطين  
+Soil Science and Fertility,Copper,🔧,Helps in photosynthesis and respiration,النحاس  
+Soil Science and Fertility,Crop Rotation,🔄🌾,Rotating crops to maintain soil health,تدوير المحاصيل  
+Soil Science and Fertility,Fertilizer Application Method,👐🌾,Broadcasting, drilling, or foliar application techniques,طريقة تطبيق الأسمدة
+Soil Science and Fertility,Fertilizer Application Timing,⏰🌾,Scheduling fertilizers for maximum efficiency,توقيت تطبيق الأسمدة  
+Soil Science and Fertility,Fertilizer Application,🧪🚜,Adding nutrients to soil in proper amounts,إضافة الأسمدة  
+Soil Science and Fertility,Field Drainage,🚰🌾,Removing excess water to prevent nutrient loss,تصريف الحقول  
+Soil Science and Fertility,Foliar Feeding,🍃💦,Spraying nutrients directly onto leaves,التسميد الورقي  
+Soil Science and Fertility,Green Manure,🌱🌾,Growing plants to plow into soil for nutrients,السماد الأخضر  
+Soil Science and Fertility,Humus,🪵,Dark organic material improving Soil Science and Fertility,الدبال  
+Soil Science and Fertility,Intercropping,🌾🌿,Growing multiple crops to enhance soil nutrients,الزراعة المشتركة  
+Soil Science and Fertility,Iron,🔩,Needed for chlorophyll synthesis,الحديد  
+Soil Science and Fertility,Loam,🌾,Balanced mixture of sand silt and clay,الطمي الرملي  
+Soil Science and Fertility,Macro Nutrients,⚖️🌿,Nutrients required in large amounts,العناصر الكبرى  
+Soil Science and Fertility,Magnesium,💚,Component of chlorophyll,المغنيسيوم  
+Soil Science and Fertility,Manganese,🪨,Activates several plant enzymes,المنغنيز  
+Soil Science and Fertility,Manure,🐄💩,Animal waste used as fertilizer,السماد العضوي  
+Soil Science and Fertility,Micro Nutrients,🧬🌿,Nutrients required in small quantities,العناصر الصغرى  
+Soil Science and Fertility,Micronutrients,⚡🌱,Essential trace elements like Zn, Fe, Mn,العناصر الدقيقة
+Soil Science and Fertility,Nitrogen Fertilizer,🟢🌾,Supplies nitrogen to enhance growth,الأسمدة النيتروجينية  
+Soil Science and Fertility,Nitrogen,🧫🌾,Promotes leaf and stem growth,النيتروجين  
+Soil Science and Fertility,Organic Fertilizer,🌿💩,Natural compost or manure to improve Soil Science and Fertility,الأسمدة العضوية  
+Soil Science and Fertility,Organic Matter Incorporation,🍂🌱,Adding crop residues or compost to improve soil structure,إضافة المواد العضوية  
+Soil Science and Fertility,Organic Matter,🍂,Decomposed plant and animal material in soil,المادة العضوية  
+Soil Science and Fertility,Phosphorus Fertilizer,🟣🌾,Supplies phosphorus for root and tiller development,الأسمدة الفسفورية  
+Soil Science and Fertility,Potassium Fertilizer,🟠🌾,Supplies potassium for stress resistance and yield,الأسمدة البوتاسية  
+Soil Science and Fertility,Water and Irrigation Management,💧🌾,Controlling water for optimal growth,إدارة المياه  
+Soil Science and Fertility,Sand,🏖️,Coarse soil particles improving drainage,الرمل  
+Soil Science and Fertility,Silt,🧂,Fine soil particles smaller than sand,الطمي  
+Soil Science and Fertility,Slow-Release Fertilizer,🐢💊,Fertilizers that release nutrients gradually,الأسمدة بطيئة الإطلاق  
+Soil Science and Fertility,Soil Analysis,🔬,Testing soil for nutrients and properties,تحليل التربة  
+Soil Science and Fertility,Soil Conservation,🏞️🌱,Preventing erosion and nutrient depletion,الحفاظ على التربة  
+Soil Science and Fertility,Soil Erosion,💨,Removal of soil by wind or water,تآكل التربة  
+Soil Science and Fertility,Soil Fertility Monitoring,📊🌱,Regular assessment of nutrient availability,مراقبة خصوبة التربة  
+Soil Science and Fertility,Soil Horizon,📚,Distinct soil layer within a profile,أفق التربة  
+Soil Science and Fertility,Soil Moisture,💧,Amount of water in soil,رطوبة التربة  
+Soil Science and Fertility,Soil Nutrients,🧪🌱,Essential elements needed for plant growth,العناصر الغذائية في التربة  
+Soil Science and Fertility,Soil pH Adjustment,⚖️🌱,Lime or sulfur to balance soil acidity,تعديل الرقم الهيدروجيني للتربة  
+Soil Science and Fertility,Soil pH,⚗️,Measure of soil acidity or alkalinity,درجة حموضة التربة  
+Soil Science and Fertility,Soil Preparation,🛠️🌱,Plowing, leveling, and puddling before transplanting,إعداد التربة
+Soil Science and Fertility,Soil Profile,📊,Vertical section showing soil layers,مقطع التربة الرأسي  
+Soil Science and Fertility,Soil Sampling,🧺,Collecting soil for testing and analysis,أخذ عينات التربة  
+Soil Science and Fertility,Soil Structure,🏗️,Arrangement of soil particles,بنية التربة  
+Soil Science and Fertility,Soil Testing,🧪🌱,Analyzing soil nutrients and pH levels,اختبار التربة  
+Soil Science and Fertility,Soil Texture,🧱,Proportion of sand silt and clay in soil,نسيج التربة  
+Soil Science and Fertility,Soil,🌍,Upper layer of earth supporting plant growth,التربة  
+Soil Science and Fertility,Subsoil,🌾,Layer beneath topsoil containing minerals,الطبقة التحتية للتربة  
+Soil Science and Fertility,Sulfur,🌋,Improves protein and oil formation,الكبريت  
+Soil Science and Fertility,Topsoil,🪴,Fertile uppermost soil layer,الطبقة السطحية للتربة  
+Soil Science and Fertility,Zinc,⚙️,Essential for enzyme activation,الزنك  
+Soil Science and Fertility,Compost,🪱,Decomposed organic fertilizer,السماد العضوي  
+Soil Science and Fertility,Macronutrients,💪,Essential nutrients needed in large amounts,العناصر الكبرى  
+Soil Science and Fertility,Nitrogen Cycle,🔁,Process of nitrogen transformation in soil,دورة النيتروجين  
+Soil Science and Fertility,Parent Material,🧩,Original rock from which soil forms,المادة الأم  
+Soil Science and Fertility,Phosphorus,🧪,Nutrient promoting root and seed growth,الفسفور  
+Soil Science and Fertility,Potassium,⚡,Nutrient improving plant strength and yield,البوتاسيوم  
+Soil Science and Fertility,,Bulk Density,⚖️,Mass of soil per unit volume,الكثافة الحجمية  
+Soil Science and Fertility,,Infiltration,⬇️💧,Movement of water into the soil,تسرب الماء في التربة  
+Soil Science and Fertility,,Leaching,💦⬇️,Loss of nutrients through downward water movement,الغسل  
+Soil Science and Fertility,,Soil Aeration,💨,Exchange of gases between soil and air,تهوية التربة  
+Soil Science and Fertility,,Soil Amendment,🧪,Material added to improve soil quality,محسنات التربة  
+Soil Science and Fertility,,Soil Porosity,🕳️,Spaces between particles holding air and water,المسامية  
+Soil Science and Fertility,,Water Holding Capacity,💧,Ability of soil to retain moisture,قدرة الاحتفاظ بالماء  
+unit5, ride (rode), 🚗, travel on vehicle (Past: rode), يركب (ركب)`;
+        
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => processCsvData(csvData));
+        unitSelect.addEventListener('change', (e) => filterAndDisplayCards(e.target.value));
+        card.addEventListener('click', async () => {
+            card.classList.toggle('flipped');
+            if (isAutoplaying) return; 
+            if (card.classList.contains('flipped')) {
+                const cardData = flashcards[currentCardIndex];
+                if (pronounceArabicCheck.checked && cardData.arabicMeaning) await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
+                if (pronounceDescriptionCheck.checked && cardData.description) await pronounceAndDelay(cardData.description, 'en-US');
+            } else {
+                window.speechSynthesis.cancel();
+            }
+        });
+        prevBtn.addEventListener('click', showPreviousCard);
+        nextBtn.addEventListener('click', showNextCard);
+        shuffleBtn.addEventListener('click', shuffleCards);
+        autoplayBtn.addEventListener('click', toggleAutoplay);
+        pronounceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (pronounceWordCheck.checked && wordFront.textContent) pronounceText(wordFront.textContent, 'en-US');
+        });
+        memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
+        searchModeBtn.addEventListener('click', () => switchMode('search'));
+        quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        gamesModeBtn.addEventListener('click', () => switchMode('games'));
+        searchInput.addEventListener('input', performSearch);
+        level1Btn.addEventListener('click', () => { currentQuizLevel = 1; startQuiz(); });
+        level2Btn.addEventListener('click', () => { currentQuizLevel = 2; startQuiz(); });
+        restartQuizBtn.addEventListener('click', startQuiz);
+        startMatchingGameBtn.addEventListener('click', startMatchingGame);
+        restartMatchingGameBtn.addEventListener('click', startMatchingGame);
+        startHangmanGameBtn.addEventListener('click', startHangmanGame);
+        restartHangmanGameBtn.addEventListener('click', startHangmanGame);
+        startWordScrambleGameBtn.addEventListener('click', startWordScrambleGame);
+        restartWordScrambleGameBtn.addEventListener('click', startWordScrambleGame);
+        submitScrambleBtn.addEventListener('click', checkScrambleGuess);
+        skipScrambleBtn.addEventListener('click', () => {
+            scrambleGuessInput.disabled = true;
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
+            const details = createWordDetailHTML(scrambleWordToGuess);
+            showNotification(`The word was: ${scrambleWordToGuess.word}${details}`, false, 5000);
+            setTimeout(nextScrambleWord, 5000);
+        });
+        scrambleGuessInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') checkScrambleGuess();
+        });
+
+        // Spelling Bee Listeners
+        startSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
+        restartSpellingBeeGameBtn.addEventListener('click', startSpellingBeeGame);
+        hearWordAgainBtn.addEventListener('click', () => {
+            if(spellingBeeCardToGuess) pronounceText(spellingBeeCardToGuess.word, 'en-US');
+        });
+        submitSpellingBtn.addEventListener('click', checkSpellingGuess);
+        spellingGuessInput.addEventListener('keyup', e => {
+            if (e.key === 'Enter') checkSpellingGuess();
+        });
+        skipSpellingBtn.addEventListener('click', () => {
+            if(spellingBeeLives > 0) {
+                 spellingBeeLives--;
+                 updateSpellingBeeStats();
+                 const details = createWordDetailHTML(spellingBeeCardToGuess);
+                 showNotification(`The word was: ${spellingBeeCardToGuess.word}${details}`, true, 5000);
+                 if (spellingBeeLives > 0) {
+                     setTimeout(nextSpellingBeeWord, 5000);
+                 } else {
+                     endSpellingBeeGame(false);
+                 }
+            }
+        });
+
+
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                searchLanguage = btn.dataset.lang;
+                searchInput.placeholder = searchLanguage === 'en' ? 'Search words (use * for wildcard)...' : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
+                searchInput.value = '';
+                performSearch(); 
+            });
+        });
+
+        speedControl.addEventListener('input', (e) => {
+            speechRate = parseFloat(e.target.value);
+            speedValue.textContent = `${speechRate.toFixed(1)}x`;
+        });
+
+        // --- Functions ---
+        
+        function processCsvData(csvString) {
+             try {
+                const rows = csvString.trim().split('\n');
+                const headers = rows[0].split(',').map(h => h.toLowerCase().trim());
+                
+                const unitIndex = headers.indexOf('unit');
+                const wordIndex = headers.indexOf('word');
+                const iconIndex = headers.indexOf('icon');
+                const descIndex = headers.indexOf('description');
+                const arabicIndex = headers.indexOf('arabic meaning');
+                
+                if (wordIndex === -1) throw new Error("Column 'Word' not found in data.");
+                if (unitIndex === -1) throw new Error("A 'Unit' column is required in data.");
+                if (arabicIndex === -1) throw new Error("Column 'Arabic Meaning' not found in data.");
+
+                allFlashcards = rows.slice(1).map(row => {
+                    const columns = row.split(',');
+                    return {
+                        unit: (columns[unitIndex] || '').trim(),
+                        word: (columns[wordIndex] || '').trim(), 
+                        icon: (columns[iconIndex] || '').trim(), 
+                        description: (columns[descIndex] || '').trim(), 
+                        arabicMeaning: (columns[arabicIndex] || '').trim()
+                    }
+                }).filter(card => card.unit && card.word && card.arabicMeaning);
+
+                if (allFlashcards.length < 8) {
+                    appContainer.classList.add('hidden'); 
+                    unitSelectorSection.classList.add('hidden');
+                    throw new Error("At least 8 valid English words with Arabic meanings and Unit names are needed.");
+                }
+
+                showNotification(`✅ Loaded ${allFlashcards.length} cards successfully!`);
+                
+                populateUnitSelector();
+                unitSelectorSection.classList.remove('hidden');
+                
+                filterAndDisplayCards('all'); 
+                
+                appContainer.classList.remove('hidden');
+                switchMode('memorize');
+
+             } catch (error) {
+                console.error('Error parsing data:', error);
+                showNotification(error.message, true, 5000);
+             }
+        }
+
+        function filterAndDisplayCards(unit) {
+            stopAutoplay();
+            if (unit === 'all') {
+                flashcards = [...allFlashcards];
+            } else {
+                flashcards = allFlashcards.filter(card => card.unit.toLowerCase() === unit.toLowerCase());
+            }
+
+            if (flashcards.length === 0) {
+                showNotification(`No cards found for ${unit}. Showing all cards instead.`, true);
+                flashcards = [...allFlashcards];
+                unitSelect.value = 'all';
+            }
+
+            quizLengthInput.max = flashcards.length;
+            quizLengthInput.value = Math.min(20, flashcards.length);
+
+            currentCardIndex = 0;
+            updateWordList();
+            displayCurrentCard();
+
+            const hasCards = flashcards.length > 0;
+            [prevBtn, nextBtn, shuffleBtn, autoplayBtn].forEach(btn => btn.disabled = !hasCards);
+
+            if (!appContainer.classList.contains('hidden')) {
+                switchMode('memorize');
+            }
+        }
+
+        function switchMode(mode) {
+            if (flashcards.length === 0 && mode !== 'search') { // Allow search even with 0 cards
+                showNotification("No cards available for this unit.", true);
+                return;
+            }
+            stopAutoplay();
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${mode}ModeBtn`).classList.add('active');
+
+            const views = [
+                searchSection, levelSelectView, cardContainer, memorizeNav, wordList, 
+                quizView, memorizeView, controlsSection, gamesSection, 
+                matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer
+            ];
+            views.forEach(view => view.classList.add('hidden'));
+
+            if (mode === 'memorize') {
+                [controlsSection, cardContainer, memorizeView, memorizeNav, wordList].forEach(v => v.classList.remove('hidden'));
+                displayCurrentCard();
+            } else if (mode === 'search') {
+                [searchSection, cardContainer, memorizeView].forEach(v => v.classList.remove('hidden'));
+                searchInput.placeholder = searchLanguage === 'en' ? 'Search words (use * for wildcard)...' : 'ابحث بالكلمات العربية (استخدم * للبحث)...';
+                searchInput.dir = searchLanguage === 'ar' ? 'rtl' : 'ltr';
+                showSearchPromptCard();
+            } else if (mode === 'quiz') {
+                levelSelectView.classList.remove('hidden');
+            } else if (mode === 'games') {
+                gamesSection.classList.remove('hidden');
+                gameMenuView.classList.remove('hidden');
+            }
+        }
+
+        function populateUnitSelector() {
+            const units = ['all', ...new Set(allFlashcards.map(card => card.unit.toLowerCase()))];
+            unitSelect.innerHTML = '';
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit === 'all' ? 'All Units' : unit.charAt(0).toUpperCase() + unit.slice(1);
+                unitSelect.appendChild(option);
+            });
+        }
+
+        function pronounceText(text, lang) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = speechRate;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showNotification('Text-to-speech not supported.', true);
+            }
+        }
+
+        function pronounceAndDelay(text, lang) {
+            return new Promise(resolve => {
+                if (!text || !('speechSynthesis' in window)) {
+                    resolve();
+                    return;
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = speechRate;
+                utterance.onend = resolve;
+                utterance.onerror = resolve; 
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+
+        function displayCurrentCard() {
+            if (flashcards.length === 0) {
+                // Handle no cards state gracefully
+                wordFront.textContent = 'No Cards';
+                cardIcon.textContent = '🤷‍♂️';
+                description.textContent = 'No cards available for the selected unit.';
+                arabicMeaning.textContent = 'لا توجد بطاقات';
+                progress.textContent = `0 / 0`;
+                 if(card.classList.contains('flipped')) card.classList.remove('flipped');
+                return;
+            };
+            const cardData = flashcards[currentCardIndex];
+            const wordLower = (cardData.word || '').toLowerCase();
+            
+            wordFront.textContent = cardData.word || 'N/A';
+            cardIcon.textContent = cardData.icon || '📝';
+            
+            if (colorMap[wordLower]) {
+                cardIcon.style.color = colorMap[wordLower];
+                cardIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000, 0 0 5px #000' : 'none';
+            } else {
+                cardIcon.style.color = '';
+                cardIcon.style.textShadow = 'none';
+            }
+
+            description.textContent = cardData.description || 'No description.';
+            arabicMeaning.textContent = cardData.arabicMeaning || '...'; 
+            progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+            
+            const currentWord = cardData.word;
+            document.querySelectorAll('.word-item').forEach(item => {
+                item.classList.toggle('active', item.textContent === currentWord);
+            });
+
+            if(card.classList.contains('flipped')) card.classList.remove('flipped');
+        }
+
+        function showPreviousCard() {
+            stopAutoplay();
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            displayCurrentCard();
+        }
+
+        function showNextCard() {
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            displayCurrentCard();
+        }
+
+        function shuffleCards() {
+            stopAutoplay();
+            if (flashcards.length < 2) {
+                showNotification("Not enough cards to shuffle.", true);
+                return;
+            }
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            currentCardIndex = 0;
+            updateWordList();
+            displayCurrentCard();
+            showNotification("🔀 Cards have been shuffled!");
+        }
+
+        function updateWordList() {
+            wordList.innerHTML = '';
+            if(flashcards.length === 0) return;
+
+            flashcards.forEach((cardData) => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.textContent = cardData.word;
+                item.addEventListener('click', () => {
+                    stopAutoplay();
+                    const originalIndex = flashcards.findIndex(card => card.word === cardData.word);
+                    if (originalIndex !== -1) {
+                        currentCardIndex = originalIndex;
+                        displayCurrentCard();
+                    }
+                });
+                wordList.appendChild(item);
+            });
+            const currentItem = wordList.children[currentCardIndex];
+            if (currentItem) {
+                currentItem.classList.add('active');
+            }
+        }
+
+        function showSearchPromptCard() {
+            wordFront.textContent = 'Search a Word';
+            cardIcon.textContent = '🔍';
+            cardIcon.style.color = '';
+            cardIcon.style.textShadow = 'none';
+            description.textContent = 'Use the search box above to find a word.';
+            arabicMeaning.textContent = 'ابحث عن كلمة';
+            if(card.classList.contains('flipped')) card.classList.remove('flipped');
+        }
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            const regex = new RegExp(query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*'), 'i');
+            const searchKey = searchLanguage === 'en' ? 'word' : 'arabicMeaning';
+            const results = flashcards.filter(card => regex.test(card[searchKey]));
+            displaySearchResults(results);
+        }
+
+        function displaySearchResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="word-item" style="cursor:default; background:none;">No results found.</div>';
+                return;
+            }
+            const displayKey = searchLanguage === 'en' ? 'word' : 'arabicMeaning';
+            results.forEach(cardData => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.textContent = cardData[displayKey]; 
+                 if (searchLanguage === 'ar') {
+                    item.style.direction = 'rtl';
+                }
+                item.addEventListener('click', () => {
+                    const originalIndex = flashcards.findIndex(card => card.word === cardData.word && card.arabicMeaning === cardData.arabicMeaning);
+                    if (originalIndex !== -1) {
+                        currentCardIndex = originalIndex;
+                        displayCurrentCard();
+                    }
+                });
+                searchResults.appendChild(item);
+            });
+        }
+
+        function startQuiz() {
+            levelSelectView.classList.add('hidden');
+            cardContainer.classList.remove('hidden');
+            quizView.classList.remove('hidden');
+            memorizeView.classList.add('hidden');
+            score = 0;
+            currentQuizIndex = 0;
+            let desiredLength = parseInt(quizLengthInput.value);
+            if (isNaN(desiredLength) || desiredLength < 4) { desiredLength = 4; }
+            if (desiredLength > flashcards.length) { desiredLength = flashcards.length; }
+             if (flashcards.length < 4) {
+                showNotification("You need at least 4 cards in this unit to start a quiz.", true);
+                switchMode('memorize'); // Go back to a safe mode
+                return;
+            }
+            const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
+            quizQuestions = shuffled.slice(0, desiredLength);
+            displayQuizQuestion();
+        }
+
+        function displayQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                const percentage = score / quizQuestions.length * 100;
+                let stars = '', icon = '';
+                if (percentage >= 90) { stars = '⭐⭐⭐'; icon = '🏆'; } 
+                else if (percentage >= 70) { stars = '⭐⭐'; icon = '🥇'; } 
+                else if (percentage >= 50) { stars = '⭐'; icon = '👍'; } 
+                else { stars = 'Try Again!'; icon = '😔'; }
+                quizQuestionLevel1.classList.add('hidden');
+                quizQuestionText.classList.remove('hidden');
+                quizQuestionText.innerHTML = `<div style="text-align: center;"><div style="font-size: 4rem; margin-bottom: 15px;">${icon}</div><h2>Quiz Complete!</h2></div>`;
+                quizOptions.innerHTML = `<div style="grid-column: 1 / -1; text-align: center;"><p style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Your final score is ${score} out of ${quizQuestions.length}.</p><div style="font-size: 2.5rem;">${stars}</div></div>`;
+                quizScore.innerHTML = `🏆 Final Score: ${score}/${quizQuestions.length}`;
+                quizProgress.textContent = "Finished!";
+                return;
+            }
+            quizQuestionText.innerHTML = '';
+            quizProgress.textContent = `Question: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
+            quizScore.innerHTML = `🏆 Score: ${score} / ${quizQuestions.length}`;
+            const questionData = quizQuestions[currentQuizIndex];
+            quizQuestionText.classList.toggle('hidden', currentQuizLevel === 1);
+            quizQuestionLevel1.classList.toggle('hidden', currentQuizLevel === 2);
+            let correctAnswer, options = new Set();
+            if (currentQuizLevel === 1) {
+                const wordLower = (questionData.word || '').toLowerCase();
+                quizQuestionIcon.textContent = questionData.icon || '📝';
+                quizQuestionWord.textContent = questionData.word;
+                quizQuestionIcon.style.color = colorMap[wordLower] || '';
+                quizQuestionIcon.style.textShadow = wordLower === 'white' ? '0 0 5px #000' : 'none';
+                correctAnswer = questionData.arabicMeaning;
+                options.add(correctAnswer);
+                const distractors = allFlashcards.filter(f => f.arabicMeaning !== correctAnswer);
+                while (options.size < 4 && distractors.length > 0) {
+                     options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].arabicMeaning);
+                }
+            } else { // Level 2
+                quizQuestionText.textContent = questionData.description;
+                correctAnswer = questionData.word;
+                options.add(correctAnswer);
+                const distractors = allFlashcards.filter(f => f.word !== correctAnswer);
+                while (options.size < 4 && distractors.length > 0) {
+                     options.add(distractors.splice(Math.floor(Math.random() * distractors.length), 1)[0].word);
+                }
+            }
+            const shuffledOptions = Array.from(options).sort(() => 0.5 - Math.random());
+            quizOptions.innerHTML = '';
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                if(currentQuizLevel === 1) button.style.direction = 'rtl';
+                button.addEventListener('click', () => checkAnswer(option, correctAnswer));
+                quizOptions.appendChild(button);
+            });
+        }
+        
+        function checkAnswer(selectedOption, correctAnswer) {
+            const buttons = quizOptions.querySelectorAll('.option-btn');
+            buttons.forEach(button => {
+                button.disabled = true;
+                if (button.textContent === correctAnswer) button.classList.add('correct');
+            });
+            if (selectedOption === correctAnswer) {
+                score++;
+                showNotification("Correct!", false, 1500);
+            } else {
+                buttons.forEach(button => {
+                  if (button.textContent === selectedOption) button.classList.add('incorrect');
+                });
+                showNotification("Incorrect!", true, 1500);
+            }
+            currentQuizIndex++;
+            setTimeout(displayQuizQuestion, 2000);
+        }
+
+        function showNotification(message, isError = false, duration = 3000) {
+            const icon = isError ? '❌' : '✅';
+            notification.innerHTML = `<span>${icon}</span> ${message}`;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), duration);
+        }
+
+        // --- Autoplay Functions ---
+        function toggleAutoplay() {
+            isAutoplaying ? stopAutoplay() : startAutoplay();
+        }
+
+        async function playCardSequence() {
+            if (!isAutoplaying) return;
+            const cardData = flashcards[currentCardIndex];
+            if (pronounceWordCheck.checked && cardData.word) await pronounceAndDelay(cardData.word, 'en-US');
+            if (!isAutoplaying) return;
+            card.classList.add('flipped');
+            await new Promise(r => setTimeout(r, 800));
+            if (!isAutoplaying) return;
+            if (pronounceArabicCheck.checked && cardData.arabicMeaning) await pronounceAndDelay(cardData.arabicMeaning, 'ar-SA');
+            if (!isAutoplaying) return;
+            if (pronounceDescriptionCheck.checked && cardData.description) await pronounceAndDelay(cardData.description, 'en-US');
+        }
+
+        async function autoplayLoop() {
+            if (!isAutoplaying) return;
+            await playCardSequence();
+            if (!isAutoplaying) return;
+            await new Promise(r => setTimeout(r, 1500));
+            if (!isAutoplaying) return;
+            showNextCard();
+            if (isAutoplaying) {
+               autoplayTimeout = setTimeout(autoplayLoop, 800);
+            }
+        }
+
+        function startAutoplay() {
+            if (!flashcards.length) return;
+            isAutoplaying = true;
+            autoplayBtn.innerHTML = '⏹️ Stop';
+            autoplayBtn.style.backgroundColor = 'var(--red-btn)';
+            [prevBtn, nextBtn, shuffleBtn].forEach(b => b.disabled = true);
+            wordList.style.pointerEvents = 'none';
+            autoplayLoop();
+        }
+
+        function stopAutoplay() {
+            if (!isAutoplaying) return;
+            isAutoplaying = false;
+            clearTimeout(autoplayTimeout);
+            autoplayTimeout = null;
+            window.speechSynthesis.cancel();
+            autoplayBtn.innerHTML = '▶️ Autoplay';
+            autoplayBtn.style.backgroundColor = 'var(--accent)';
+            [prevBtn, nextBtn, shuffleBtn].forEach(b => b.disabled = false);
+            wordList.style.pointerEvents = 'auto';
+        }
+
+        function createWordDetailHTML(card) {
+            if (!card) return '';
+            const descriptionText = card.description ? `<b>Description:</b> ${card.description}` : '';
+            return `<br><div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.5); padding-top: 8px;">
+                        <span style="direction: rtl; display: block; text-align: right;"><b>المعنى:</b> ${card.arabicMeaning}</span>
+                        <small>${descriptionText}</small>
+                    </div>`;
+        }
+
+        // --- Game Functions ---
+        function startMatchingGame() {
+            [gameMenuView, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
+            matchingGameContainer.classList.remove('hidden');
+            matchScore = 0;
+            updateMatchScore();
+
+            const GAME_SIZE = 8;
+            if (flashcards.length < GAME_SIZE) {
+                showNotification(`You need at least ${GAME_SIZE} cards in this unit to play.`, true);
+                switchMode('memorize');
+                return;
+            }
+
+            const gameCards = [...flashcards].sort(() => 0.5 - Math.random()).slice(0, GAME_SIZE);
+            pairsToMatch = gameCards.length;
+
+            const words = gameCards.map(c => ({ text: c.word, matchId: c.word }));
+            const meanings = gameCards.map(c => ({ text: c.arabicMeaning, matchId: c.word }));
+
+            renderMatchColumn(matchWordsColumn, words.sort(() => 0.5 - Math.random()), 'word');
+            renderMatchColumn(matchMeaningsColumn, meanings.sort(() => 0.5 - Math.random()), 'meaning');
+        }
+
+        function renderMatchColumn(columnEl, items, type) {
+            columnEl.innerHTML = '';
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'match-item';
+                itemEl.textContent = item.text;
+                itemEl.dataset.matchId = item.matchId;
+                itemEl.dataset.type = type;
+                if (type === 'meaning') itemEl.style.direction = 'rtl';
+                itemEl.addEventListener('click', handleMatchItemClick);
+                columnEl.appendChild(itemEl);
+            });
+        }
+
+        function handleMatchItemClick(e) {
+            const clickedItem = e.target;
+            if (clickedItem.classList.contains('correct')) return;
+            const type = clickedItem.dataset.type;
+
+            if (type === 'word') {
+                if (selectedWordEl) selectedWordEl.classList.remove('selected');
+                selectedWordEl = clickedItem;
+                selectedWordEl.classList.add('selected');
+            } else { // meaning
+                if (selectedMeaningEl) selectedMeaningEl.classList.remove('selected');
+                selectedMeaningEl = clickedItem;
+                selectedMeaningEl.classList.add('selected');
+            }
+
+            if (selectedWordEl && selectedMeaningEl) {
+                document.getElementById('matchBoard').style.pointerEvents = 'none';
+                if (selectedWordEl.dataset.matchId === selectedMeaningEl.dataset.matchId) {
+                    [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.add('correct'));
+                    selectedWordEl = null;
+                    selectedMeaningEl = null;
+                    matchScore++;
+                    updateMatchScore();
+                    showNotification('Match found!', false, 1000);
+                    if (matchScore === pairsToMatch) {
+                        setTimeout(() => showNotification('🎉 Congratulations! You found all matches!', false, 5000), 1200);
+                    }
+                    document.getElementById('matchBoard').style.pointerEvents = 'auto';
+                } else {
+                    [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.add('incorrect'));
+                    setTimeout(() => {
+                        [selectedWordEl, selectedMeaningEl].forEach(el => el.classList.remove('incorrect', 'selected'));
+                        selectedWordEl = null;
+                        selectedMeaningEl = null;
+                        document.getElementById('matchBoard').style.pointerEvents = 'auto';
+                    }, 800);
+                }
+            }
+        }
+        
+        function updateMatchScore() {
+            matchScoreEl.textContent = `Score: ${matchScore}`;
+        }
+
+        function startHangmanGame() {
+            [gameMenuView, matchingGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
+            hangmanGameContainer.classList.remove('hidden');
+
+            hangmanWrongGuesses = 0;
+            hangmanGuessedLetters = [];
+            
+            const validHangmanWords = flashcards.filter(c => !c.word.includes(' '));
+            if (validHangmanWords.length === 0) {
+                showNotification("No single-word cards available in this unit for Hangman.", true);
+                switchMode('games');
+                return;
+            }
+            hangmanCardToGuess = validHangmanWords[Math.floor(Math.random() * validHangmanWords.length)];
+            hangmanWordToGuess = hangmanCardToGuess.word.toUpperCase();
+            
+            updateHangmanLives();
+            drawHangmanWord();
+            createHangmanKeyboard();
+            document.querySelectorAll('#hangmanDrawing .hg-part').forEach((part, index) => {
+                if (index < 4) {
+                    part.classList.add('draw');
+                } else {
+                    part.classList.remove('draw');
+                }
+            });
+        }
+
+        function drawHangmanWord() {
+            hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(letter => `
+                <div class="letter-box">
+                    ${hangmanGuessedLetters.includes(letter) || !/[A-Z]/.test(letter) ? letter : ''}
+                </div>
+            `).join('');
+        }
+
+        function createHangmanKeyboard() {
+            hangmanKeyboard.innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(key => 
+                `<button class="key">${key}</button>`
+            ).join('');
+            hangmanKeyboard.addEventListener('click', handleHangmanGuess);
+        }
+
+        function handleHangmanGuess(e) {
+            if (e.target.tagName !== 'BUTTON') return;
+            const letter = e.target.textContent;
+            e.target.disabled = true;
+
+            if (hangmanWordToGuess.includes(letter)) {
+                e.target.classList.add('correct');
+                hangmanGuessedLetters.push(letter);
+            } else {
+                e.target.classList.add('incorrect');
+                hangmanWrongGuesses++;
+                updateHangmanLives();
+                document.querySelectorAll('#hangmanDrawing .hg-part')[hangmanWrongGuesses + 3].classList.add('draw');
+            }
+            drawHangmanWord();
+            checkHangmanWinLoss();
+        }
+        
+        function updateHangmanLives() {
+            hangmanLivesEl.textContent = `Lives: ${HANGMAN_MAX_WRONG - hangmanWrongGuesses}`;
+        }
+
+        function checkHangmanWinLoss() {
+            const isWon = hangmanWordToGuess.split('').every(letter => hangmanGuessedLetters.includes(letter) || !/[A-Z]/.test(letter));
+            if (isWon) {
+                const details = createWordDetailHTML(hangmanCardToGuess);
+                showNotification(`🎉 You won! The word was ${hangmanWordToGuess}.${details}`, false, 6000);
+                hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
+            } else if (hangmanWrongGuesses >= HANGMAN_MAX_WRONG) {
+                const details = createWordDetailHTML(hangmanCardToGuess);
+                showNotification(`😭 You lost. The word was: ${hangmanWordToGuess}.${details}`, true, 7000);
+                hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(letter => `<div class="letter-box">${letter}</div>`).join('');
+                hangmanKeyboard.removeEventListener('click', handleHangmanGuess);
+            }
+        }
+        
+        function startWordScrambleGame() {
+            [gameMenuView, matchingGameContainer, hangmanGameContainer, spellingBeeGameContainer].forEach(v => v.classList.add('hidden'));
+            wordScrambleGameContainer.classList.remove('hidden');
+            scrambleScore = 0;
+            updateScrambleScore();
+            nextScrambleWord();
+        }
+        
+        function nextScrambleWord() {
+             if (flashcards.length === 0) {
+                showNotification("No cards in this unit to play Word Scramble.", true);
+                switchMode('games');
+                return;
+            }
+            scrambleWordToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            let word = scrambleWordToGuess.word;
+            let scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
+            while (scrambled.toLowerCase() === word.toLowerCase() && word.length > 1) {
+                scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
+            }
+            scrambledWordEl.textContent = scrambled;
+            scrambleGuessInput.value = '';
+            scrambleGuessInput.disabled = false;
+            scrambleGuessInput.focus();
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }
+
+        function checkScrambleGuess() {
+            const guess = scrambleGuessInput.value.trim();
+            if (!guess) return;
+
+            const isCorrect = guess.toLowerCase() === scrambleWordToGuess.word.toLowerCase();
+            
+            scrambleGuessInput.disabled = true;
+            scrambleControls.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                const details = createWordDetailHTML(scrambleWordToGuess);
+                showNotification(`✅ Correct! ${scrambleWordToGuess.word}${details}`, false, 4000);
+                scrambleScore++;
+                updateScrambleScore();
+                setTimeout(nextScrambleWord, 4000);
+            } else {
+                const details = createWordDetailHTML(scrambleWordToGuess);
+                showNotification(`❌ Incorrect. The word was: ${scrambleWordToGuess.word}${details}`, true, 5000);
+                scrambleGuessInput.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    scrambleGuessInput.style.animation = '';
+                    nextScrambleWord();
+                }, 5000);
+            }
+        }
+
+        function updateScrambleScore() {
+            scrambleScoreEl.textContent = `Score: ${scrambleScore}`;
+        }
+        
+        function startSpellingBeeGame() {
+            [gameMenuView, matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer].forEach(v => v.classList.add('hidden'));
+            spellingBeeGameContainer.classList.remove('hidden');
+            spellingBeeScore = 0;
+            spellingBeeLives = SPELLING_BEE_MAX_LIVES;
+            updateSpellingBeeStats();
+            nextSpellingBeeWord();
+        }
+
+        function nextSpellingBeeWord() {
+            if (flashcards.length === 0) {
+                showNotification("No cards in this unit to play Spelling Bee.", true);
+                switchMode('games');
+                return;
+            }
+            spellingBeeCardToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            spellingBeeHint.textContent = `Hint: ${spellingBeeCardToGuess.arabicMeaning}`;
+            spellingGuessInput.value = '';
+            spellingGuessInput.disabled = false;
+            spellingGuessInput.focus();
+            [submitSpellingBtn, skipSpellingBtn].forEach(b => b.disabled = false);
+
+            setTimeout(() => {
+                 pronounceText(spellingBeeCardToGuess.word, 'en-US');
+            }, 500);
+        }
+
+        function checkSpellingGuess() {
+            const guess = spellingGuessInput.value.trim().toLowerCase();
+            if (!guess) return;
+
+            const correctWord = spellingBeeCardToGuess.word.toLowerCase();
+            const isCorrect = guess === correctWord;
+            
+            [submitSpellingBtn, skipSpellingBtn, spellingGuessInput].forEach(el => el.disabled = true);
+
+            if (isCorrect) {
+                spellingBeeScore++;
+                updateSpellingBeeStats();
+                const details = createWordDetailHTML(spellingBeeCardToGuess);
+                showNotification(`✅ Correct!${details}`, false, 4000);
+                setTimeout(nextSpellingBeeWord, 4000);
+            } else {
+                spellingBeeLives--;
+                updateSpellingBeeStats();
+                const details = createWordDetailHTML(spellingBeeCardToGuess);
+                showNotification(`❌ Incorrect. The word was: ${spellingBeeCardToGuess.word}${details}`, true, 5000);
+                
+                spellingGuessInput.style.animation = 'shake 0.5s';
+                setTimeout(() => spellingGuessInput.style.animation = '', 500);
+
+                if (spellingBeeLives > 0) {
+                    setTimeout(nextSpellingBeeWord, 5000);
+                } else {
+                    endSpellingBeeGame(false);
+                }
+            }
+        }
+        
+        function updateSpellingBeeStats() {
+            spellingBeeScoreEl.textContent = `Score: ${spellingBeeScore}`;
+            spellingBeeLivesEl.textContent = `Lives: ${spellingBeeLives} ❤️`;
+        }
+
+        function endSpellingBeeGame(won) {
+            const message = won ? "🎉 Congratulations! You completed the spelling bee!" : "😭 Game Over! Better luck next time.";
+            showNotification(message, !won, 6000);
+            [submitSpellingBtn, skipSpellingBtn, spellingGuessInput].forEach(el => el.disabled = true);
+        }
+
+    </script>
+</body>
+</html>
+
